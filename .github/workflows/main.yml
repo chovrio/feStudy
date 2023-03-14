@@ -20,8 +20,8 @@ jobs:
       - name: Deploy # 将打包内容发布到 github page
         uses: JamesIves/github-pages-deploy-action@v4 # 使用别人写好的 actions
         with: # 自定义环境变量
-          ACCESS_TOKEN: ${{ secrets.DEPLOY_KEY }} # DEPLOY_KEY 是我的 secret 名称，需要替换成你的
-          BRANCH: master
-          FOLDER: festudy
-          REPOSITORY_NAME: chovrio/chovrio.github.io # 这是我的 github page 仓库
-          TARGET_FOLDER: github-actions-demo # 打包的文件将放到静态服务器 github-actions-demo 目录下
+          token: ${{ secrets.DEPLOY_KEY }} # DEPLOY_KEY 是我的 secret 名称，需要替换成你的
+          branch: master
+          folder: build
+          repository-name: chovrio/chovrio.github.io # 这是我的 github page 仓库
+          target-folder: festudy # 打包的文件将放到静态服务器 github-actions-demo 目录下
