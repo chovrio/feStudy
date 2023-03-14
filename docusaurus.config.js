@@ -8,13 +8,16 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "前端学习文档",
   tagline: "chovrio",
-  favicon: "img/favicon.ico",
+  favicon:
+    process.env.NODE_ENV === "development"
+      ? "/img/favicon.ico"
+      : "./img/favicon.ico",
 
   // Set the production url of your site here
   url: "https://your-docusaurus-test-site.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "./chovrio.github.io",
+  baseUrl: process.env.NODE_ENV === "development" ? "." : "./chovrio.github.io",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
