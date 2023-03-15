@@ -3,6 +3,8 @@ on: # 监听 main 分支上的 push 事件
   push:
     branches:
       - main
+env:
+  DEPLOYMENT_ENV: chovrio.github.io
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest # 构建环境使用 ubuntu
@@ -16,7 +18,6 @@ jobs:
         run: |
           npm install
           npm run build
-
       - name: Deploy # 将打包内容发布到 github page
         uses: JamesIves/github-pages-deploy-action@v4 # 使用别人写好的 actions
         with: # 自定义环境变量
@@ -25,4 +26,3 @@ jobs:
           folder: build
           repository-name: chovrio/chovrio.github.io # 这是我的 github page 仓库
           target-folder: festudy # 打包的文件将放到静态服务器 github-actions-demo 目录下
-          env: DEPLOYMENT_ENV:"chovrio.github.io"
