@@ -3,21 +3,30 @@
 
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
-
 /** @type {import('@docusaurus/types').Config} */
+let favicon, baseUrl;
+if (process.env.NODE_ENV === "development") {
+  favicon = "img/favicon.ico";
+  baseUrl = "/";
+} else {
+  if (process.env.DEPLOYMENT_ENV === "chovrio.github.io") {
+    favicon = "/img/favicon.ico";
+    baseUrl = "festudy";
+  } else {
+    favicon = "img/favicon.ico";
+    baseUrl = "/";
+  }
+}
+
 const config = {
   title: "前端学习文档",
   tagline: "chovrio",
-  favicon:
-    process.env.NODE_ENV === "development"
-      ? "img/favicon.ico"
-      : "/img/favicon.ico",
-
+  favicon,
   // Set the production url of your site here
   url: "https://your-docusaurus-test-site.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: process.env.NODE_ENV === "development" ? "/" : "festudy",
+  baseUrl,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
