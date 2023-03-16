@@ -103,8 +103,8 @@ const config = {
             title: "Docs",
             items: [
               {
-                label: "html",
-                to: "/docs/category/html",
+                label: "笔记",
+                to: "/docs/前言",
               },
               {
                 label: "blog",
