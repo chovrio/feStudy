@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const config = {
-  title: "前端学习文档",
+  title: "学习笔记",
   tagline: "chovrio",
   favicon,
   // Set the production url of your site here
@@ -76,7 +76,7 @@ const config = {
       // Replace with your project's social card
       image: "img/docusaurus-social-card.jpg",
       navbar: {
-        title: "前端学习文档",
+        title: "杂七杂八",
         logo: {
           alt: "My Site Logo",
           src: "img/logo.svg",
@@ -106,23 +106,31 @@ const config = {
                 label: "html",
                 to: "/docs/category/html",
               },
+              {
+                label: "blog",
+                to: "/blog",
+              },
             ],
           },
           {
             title: "Community",
             items: [
               {
-                label: "Stack Overflow",
-                href: "https://stackoverflow.com/questions/tagged/docusaurus",
+                label: "none",
+                href: "/",
               },
-              {
-                label: "Discord",
-                href: "https://discordapp.com/invite/docusaurus",
-              },
-              {
-                label: "Twitter",
-                href: "https://twitter.com/docusaurus",
-              },
+              // {
+              //   label: "Stack Overflow",
+              //   href: "https://stackoverflow.com/questions/tagged/docusaurus",
+              // },
+              // {
+              //   label: "Discord",
+              //   href: "https://discordapp.com/invite/docusaurus",
+              // },
+              // {
+              //   label: "Twitter",
+              //   href: "https://twitter.com/docusaurus",
+              // },
             ],
           },
           {
@@ -130,11 +138,11 @@ const config = {
             items: [
               {
                 label: "Blog",
-                to: "/blog",
+                to: "https://blog.chovrio.club",
               },
               {
                 label: "GitHub",
-                href: "https://github.com/facebook/docusaurus",
+                href: "https://github.com/chovrio",
               },
             ],
           },
