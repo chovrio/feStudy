@@ -606,3 +606,67 @@ fn calculate_length(s: String) -> (String, usize) {
 }
 ```
 
+## 4.2 引用与借用
+
+**例子**
+
+```rust
+fn main() {
+    let s1 = String::from("Hello");
+    let len = calculate_length(&s1);
+    println!("The length of '{}' is {}", s1, len);
+}
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}
+```
+
+- 参数的类型时&String 而不是 String
+- &符号就表示引用：允许你引用某些值而不取得其所有权
+
+**借用**
+
+- 我们把引用作为函数参数这个行为叫做借用
+- 我们不能修改借用的东西
+- 和变量一样，默认是不可变的
+
+**可变引用**
+
+- 可变引用有一个重要的限制：在特定作用域内，堆某一块数据，只能由一个可变的引用。
+  - 这样做的好处是可在编译时防止数据竞争
+- 以下三种行为下会发生数据竞争：
+  - 两个或多个指针同时访问同一个数据
+  - 至少有一个指针用于写入数据
+  - 没有使用任何机制来同步对数据的访问
+- 可以通过创建新的作用域，来允许非同时的创建多个可变引 用（例子）
+
+```rust
+fn main() {
+    let mut s = String::from("Hello");
+    let s1 = &mut s;
+    let s2 = &mut s;// 报错
+    println!("The length of '{}' is {}.", s1, s2);
+}
+fn main() {
+    let mut s = String::from("Hello");
+    {
+        let s1 = &mut s;
+    }
+    // 不报错
+    let s2 = &mut s;
+}
+```
+
+**另一个限制**
+
+- 不可以同时拥有一个可变引用和一个不变引用
+- 多个不变的引用是可行的
+```rust
+fn main() {
+    let mut s = String::from("Hello");
+    let r1 = &s;
+    let r2 = &s;
+    let s1 = &mut s;// 报错
+    println!("{} {} {}", r1, r2, s1);
+}
+```
