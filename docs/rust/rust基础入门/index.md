@@ -584,3 +584,25 @@ fn makes_copy(some_number: i32) {
     println!("{}", some_number);
 }
 ```
+
+**返回值与作用域**
+
+- 函数在返回值的过程中同样也会发生所有权的转移
+- 一个变量的所有权总是遵循同样的模式：
+  - 把一个值赋给其它变量时就会发生移动
+  - 当一个包含 heap 数据的变量离开作用域时，它的值就会被 drop 函数清理，除非数据的所有权移动到另一个变量上
+
+**如何让函数使用某个值，但不获得其所有权？**
+
+```rust
+fn main() {
+    let s1 = String::from("hello");
+    let (s2, len) = calculate_length(s1);
+    println!("The length of '{}' is {}.", s2, len);
+}
+fn calculate_length(s: String) -> (String, usize) {
+    let length = s.len();
+    (s, length)
+}
+```
+
