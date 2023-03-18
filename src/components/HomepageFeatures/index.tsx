@@ -1,7 +1,6 @@
 import React from "react";
 import clsx from "clsx";
 import styles from "./styles.module.css";
-
 type FeatureItem = {
   title: string;
   Svg: React.ComponentType<React.ComponentProps<"svg">>;
@@ -57,15 +56,11 @@ function Feature({ title, Svg, description }: FeatureItem) {
 
 export default function HomepageFeatures(): JSX.Element {
   return (
-    <section className={styles.features}>
-      <div className="container">
-        <div className="row">
-          后面再写首页
-          {/* {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
-          ))} */}
-        </div>
+    <div className={styles.features}>
+      <div>
+        hhh，下定决心找实习了，谢谢你总在关键时刻推我一把，无论是以前或是现在
       </div>
-    </section>
+      <img src="/img/很不错对吧.jpg" alt="" />
+    </div>
   );
 }

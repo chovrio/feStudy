@@ -1282,3 +1282,45 @@ fn main() {
     }
 }
 ```
+
+## 7.Package，Crate，Module
+
+### 7.1 Package、Crate、定义 Module
+
+#### 7.1.1 Rust 的代码组织
+
+- 代码组织主要包括：
+  - 哪些细节可以暴露，哪些细节是私有的
+  - 作用域内哪些名称有效
+  - ...
+- 模块系统：
+  - `Package（包）`：Cargo 的特性，让你构建、测试、共享 crate
+  - `Crate（单元包）`：一个模块树，它可产生一个 library 或可执行文件
+  - `Module（模块）`、use：让你控制代码的组织、作用域、私有路径
+  - `Path（路径）`：为 struct、function 或 module 等项命名的方式
+
+#### 7.1.2 Package 和 Crate
+
+- **Crate** 的类型：
+  - **binary**（二进制）
+  - **library**（库）
+- **Crate Root**：
+  - 是源代码文件
+  - Rust 编译器从这里开始，组成你的 Crate 的根 Module
+- 一个**Package**：
+  - 包含 1 个 Cargo.toml，它描述了如何构建这些 Crates
+  - 只能包含 0-1 个 library crate
+  - 可以包含任意数量的 binary crate
+
+#### 7.1.3 Cargo 的惯例
+
+- src/main.rs:
+  - binary crate 的 crate root
+  - crate 名与 package 名相同
+- src/lib.rs：
+  - package 包含一个 library crate
+  - library crate 的 crate root
+  - crate 名与 package 名相同
+- Cargo 把 crate root 文件交给 rustc 来构建 library 或 binary
+- 一个 Package 可以同时包含 src/main.rs 和 src/lib.rs
+  - 一个 binary create，一个 library create

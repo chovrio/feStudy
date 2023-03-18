@@ -1,10 +1,14 @@
 .features {
-  display: flex;
-  align-items: center;
+  /* display: flex; */
+  /* align-items: center; */
+  text-align: center;
   padding: 2rem 0;
   width: 100%;
 }
-
+.features img {
+  width: 521px;
+  height: 257px;
+}
 .featureSvg {
   height: 200px;
   width: 200px;
