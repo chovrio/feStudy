@@ -830,6 +830,8 @@ let user1 = User {
     };
 ```
 
+### 5.2 struct 中的例子
+
 **取得 struct 里面的某个值**
 
 - 使用点标记法
@@ -877,4 +879,406 @@ let user2 = User {
 
 - 可定义类似 tuple 的 struct，叫做 tuple struct
   - Tuple struct 整体有个名，但里面的元素没有名
-  - 适用：想给整个 tuple 起名
+  - 适用：想给整个 tuple 起名，并让它不同于其它 tuple，而且又不需要给每个元素其起名
+- 定义 tuple struct：使用 struct 关键字，后边是名字，以及里面元素的类型
+- black 和 origin 是不同的类型，是不同 tuple struct 的实例。
+
+**Unit-Like Struct（没有任何字段）**
+
+- 可以定义没有任何字段的 struct，叫做 Unit-Like struct（因为与()，单元类型类似）
+- 适用于需要在某个类型上实现某个 trait，但是在里面有没有想要存储的数据
+
+**struct 数据的所有权**
+
+```rust
+struct User1 {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+}
+```
+
+- 这里的字段使用了 String 而不是&str：
+  - 该 struct 实例拥有其所有的数据
+  - 只要 struct 实例是有效的，那么里面的字段也是有效的
+- struct 里也可以存放引用，但这需要使用生命周期 -生命周期保证只要 struct 实例是有效的，那么里面的引用也是有效的。
+- 如果 struct 里面存储引用，而不使用生命周期，就会报错
+
+```rust
+struct User {
+    username: &str,// 报错
+    email: &str,// 报错
+    sign_in_count: u64,
+    active: bool,
+}
+
+fn main() {
+    println!("Hello World");
+    let user1 = User {
+        email: "aaa",
+        username: "bbb",
+        active: true,
+        sign_in_count: 100,
+    };
+}
+```
+
+**计算矩形面积例子**
+
+**普通版本**
+
+```rust
+fn main() {
+    let w = 30;
+    let l = 50;
+    println!("{}", area(w, l));
+}
+fn area(width: u32, length: u32) -> u32 {
+    width * length
+}
+```
+
+**元组版本**
+
+```rust
+fn main() {
+    let rect = (30, 50);
+    println!("{}", area(rect));
+}
+fn area(dim: (u32, u32)) -> u32 {
+    dim.0 * dim.1
+}
+```
+
+**结构体版本**
+
+```rust
+struct Rectangle {
+    width: u32,
+    length: u32,
+}
+fn main() {
+    let rect = Rectangle {
+        width: 30,
+        length: 50,
+    };
+    println!("{}", area(&rect));
+}
+fn area(rect: &Rectangle) -> u32 {
+    rect.width * rect.length
+}
+```
+
+### 5.3 struct 的方法
+
+#### 5.3.1 定义方法
+
+- 方法和函数类似：fn 关键字、名称、参数、返回值
+- 方法与函数不同之处
+  - 方法是在 struct（或 enum、frait 对象）的上下文中定义
+  - 第一个参数是 self，表示方法被调用的 struct 实例
+- 在 impl 块里定义方法
+- 方法的第一个参数可以是&self，也可以获得其所有权或可变借用。和其它参数一样。
+- 更良好的代码组织
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    length: u32,
+}
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.length
+    }
+}
+fn main() {
+    let rect = Rectangle {
+        width: 30,
+        length: 50,
+    };
+    println!("{}", rect.area());
+}
+```
+
+#### 5.3.2 方法调用的运算符
+
+- C/C++：object->something()和(\*object.something()一样
+- Rust 没有 -> 运算符
+- Rust 会自动引用或解引用
+  - 在调用方法时，Rust 根据情况自动添加&、&mut 或\*，以便 object 可以匹配方法的签名。
+- 下面两行代码效果相同：
+  - p1.distance(&p2);
+  - (&p1).distance(&p2)
+
+#### 5.3.3 方法参数
+
+- 方法可以有多个参数
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+   width: u32,
+   length: u32,
+}
+impl Rectangle {
+   fn can_hold(&self, other: &Rectangle) -> bool {
+       self.width > other.width && self.length > other.length
+   }
+}
+fn main() {
+   let rect1 = Rectangle {
+       width: 30,
+       length: 50,
+   };
+   let rect2 = Rectangle {
+       width: 10,
+       length: 40,
+   };
+   let rect3 = Rectangle {
+       width: 35,
+       length: 55,
+   };
+   println!("{}", rect1.can_hold(&rect2)); // true
+   println!("{}", rect2.can_hold(&rect3)); // false
+}
+```
+
+#### 5.3.4 关联函数
+
+- 可以在 impl 块里定义不把 self 作为第一个参数的函数，它们叫关联函数（不叫方法）
+  - 例如：String::from()
+- 关联函数通常用于构造器（例子）
+- ::符号
+  - 关联函数
+  - 模块创建的命名空间
+
+#### 5.3.5 多个 impl 块
+
+- 每个 struct 允许拥有多个 impl 块（例子）
+
+## 6.枚举与模式匹配
+
+- 枚举允许我们列举所有可能的值来定义一个类型
+
+### 6.1 定义枚举
+
+- IP 地址：IPv4、IPv6
+
+```rust
+enum ip_addrkind {
+  V4,
+  V6
+}
+```
+
+#### 6.1.1 枚举值
+
+- 例子：
+- let four = ip_addrkind::V4;
+- let six = ip_addrkind::V6;
+
+**将数据附加到枚举的变体中**
+
+```rust
+enum IpAddr {
+  V4(String),
+  V6(String),
+}
+```
+
+- 优点：
+  - 不需要额外使用 struct
+  - 每个变体可以拥有不同的类型以及关联的数据量
+- 例如：
+
+```rust
+enum IpAddrKind  {
+  V4(u8,u8,u8,u8),
+  V6(String)
+}
+```
+
+### 6.1.2 标准库中的 IpAddr
+
+```rust
+struct Ipv4Addr {
+    // --snip--
+}
+struct Ipv6Addr {
+    // --snip--
+}
+enum IpAddr {
+    V4(Ipv4Addr),
+    V6(Ipv6Addr),
+}
+enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+
+fn main() {
+    let q = Message::Quit;
+    let m = Message::Move { x: 12, y: 24 };
+    let w = Message::Write(String::from("Hello"));
+    let c = Message::ChangeColor(0, 255, 255);
+}
+```
+
+### 6.1.3 为枚举定义方法
+
+同样使用 `impl`
+
+```rust
+impl Message {
+   fn call(&self) {}
+}
+```
+
+### 6.2 Option 枚举
+
+- 定义于标准库中
+- 在 Prelude（预导入模块）中
+- 描述了：某个值可能存在（某种类型）或不存在的情况
+
+#### 6.2.1 Rust 没有 Null
+
+- 其它语言中：
+  - Null 是一个值，它表示“没有值”
+  - 一个变量可以处于两种状态：空值（null）、非空
+- Null 引用：Billion Dollar Mistake
+- Null 的问题在于：当你尝试使用非 Null 值那样使用 Null 值的时候，就会引起某种错误
+- Null 的概念还是有用的：因某种原因而变为无效或缺失的值
+
+#### 6.2.2 Rust 中类似 Null 概念的枚举 - `Option<T>`
+
+- 标准库中的定义
+
+```rust
+enum Option<T> {
+  Some(T),
+  None,
+}
+```
+
+- 它包含在 Prelude（预导入模块）中。可以直接使用：
+
+  - `Option<T>`
+  - Some(T)
+  - None
+
+- 例子
+
+```rust
+let some_number = Some(5);
+    let some_string = Some("A String");
+    let absent_number: Option<i32> = None;
+```
+
+#### `Option<T>`比 Null 好在哪？
+
+- `Option<T>`和`T`是不同的类型，不可以把`Option<T>`直接当成`T`
+- 若想使用`Option<T>`中的`T`，必须将它转为`T`
+- 而在 C#中：
+  - string a = null;
+  - string b = a + "123456";
+
+### 6.3 控制流运算符 - match
+
+#### 6.3.1 强大的控制流运算符 - match
+
+- 允许一个值与一系列模式进行匹配，并执行匹配的模式对应的代码
+- 模式可以是字面值、变量、通配符...
+
+#### 6.3.2 绑定值的模式
+
+- 匹配的分支可以绑定到被匹配对象的部分值
+  - 因此，可以从 enum 变体中提取值
+
+```rust
+#[derive(Debug)]
+enum UsState {
+    Alabame,
+    Alaska,
+}
+
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),
+}
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter(state) => {
+            println!("State quarter from {:?}", state);
+            25
+        }
+    }
+}
+fn main() {
+    let c = Coin::Quarter(UsState::Alaska);
+    println!("{}", value_in_cents(c));
+}
+```
+
+#### 6.3.3 匹配`Option<T>`
+
+**注意 match 匹配必须穷举所有的可能**
+
+```rust
+fn main() {
+    let five = Some(5);
+    let six = plus_one(five);
+    let none = plus_one(None);
+}
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        None => None,
+        Some(i) => Some(i + 1),
+    }
+}
+```
+
+#### match`_`通配符
+
+```rust
+fn main() {
+    let v = 0u8;
+    match v {
+        1 => println!("one"),
+        3 => println!("three"),
+        5 => println!("five"),
+        _ => (),
+    }
+}
+```
+
+### 6.4 if let
+
+- 处理只关心一种匹配而忽略其它匹配的情况
+- 更少的代码，更少的缩进，更少的模板代码
+- 放弃了穷举的可能
+- 可以把 if let 看作是 match 的语法糖
+- 搭配 else
+
+```rust
+fn main() {
+    let v = Some(0u8);
+    match v {
+        Some(3) => println!("three"),
+        _ => println!("others"),
+    }
+    if let Some(3) = v {
+        println!("three");
+    } else {
+        println!("others");
+    }
+}
+```
