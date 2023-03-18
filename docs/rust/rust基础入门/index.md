@@ -661,6 +661,7 @@ fn main() {
 
 - 不可以同时拥有一个可变引用和一个不变引用
 - 多个不变的引用是可行的
+
 ```rust
 fn main() {
     let mut s = String::from("Hello");
@@ -670,3 +671,210 @@ fn main() {
     println!("{} {} {}", r1, r2, s1);
 }
 ```
+
+## 4.3 切片
+
+- Rust 的另一种不持有所有权的数据类型：切片（slice）
+- 一道题，编写一个函数：
+  - 它接收字符串作为参数
+  - 返回它在这个字符串里找到的第一个的那次
+  - 如果函数没找到任何控股个，那么整个字符串就被返回
+
+```rust
+fn main() {
+    let mut s = String::from("Hello world");
+    let word_index = fitst_world(&s);
+    s.clear();
+    println!("{}", word_index);
+}
+fn fitst_world(s: &String) -> usize {
+    let bytes = s.as_bytes();
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return i;
+        }
+    }
+    s.len()
+}
+```
+
+### 字符串切片
+
+- 字符串切片是指字符串中一部分内容的引用
+- 形式：[开始索引..结束索引]
+  - 开始索引就是切片起始位置的索引值
+  - 结束索引就是切片终止位置的下一个索引值
+
+**注意**
+
+- 字符串切片的返回索引必须发生在有效的 UTF-8 字符边界内。
+- 如果尝试从一个多字节的字符中创建字符串切片，程序会报错并退出
+
+```rust
+fn main() {
+    let s = String::from("Hello World");
+    // let hello = &s[0..5];
+    // let world = &s[6..11];
+    // let hello = &s[..5];
+    // let world = &s[6..];
+    // let world = &s[6..s.len()];
+    // println!("{},{}", hello, world);
+    // let whole = &s[0..s.len()];
+    let whole = &s[..];
+    println!("{}", whole);
+}
+```
+
+**使用字符串切片重写例子**
+
+```rust
+fn main() {
+    let mut s = String::from("Hello world");
+    let word_index = fitst_world(&s);
+    s.clear();
+    println!("{}", word_index);
+}
+fn fitst_world(s: &String) -> &str {
+    let bytes = s.as_bytes();
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[..i];
+        }
+    }
+    &s[..]
+}
+```
+
+#### 字符串字面值是切片
+
+- 字符串字面值被直接存储在二进制程序中
+- let s = "Hello World"
+- 变量 s 的类型是&str，他是一个指向二进制程序特定位置的切片
+  - &str 是不可变引用，所以字符串字面值也是不可变的
+
+#### 将字符串切片作为参数传递
+
+- fn first_word(s:&String)->&str{}
+- 有经验的 Rust 开发者会采用&str 作为参数类型，因为这样就可以同时接收 String 和&str 类型的参数了：
+- fn first_world(s:&str)->&str {}
+  - 使用字符串切片，直接调用该函数
+  - 使用 String，可以创建一个完成 String 切片来调用该函数
+- 定义函数时使用字符串切片来代替字符串引用会使我们的 API 更加通用，且不会损失任何功能。
+
+```rust
+fn main() {
+    let my_string = String::from("Hello World");
+    let word_index = first_world(&my_string);
+    let my_string_literal = "hello world";
+    let word_index = first_world(my_string_literal);
+}
+fn first_world(s: &str) -> &str {
+    let bytes = s.as_bytes();
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[..i];
+        }
+    }
+    &s[..]
+}
+```
+
+### 其它类型的切片
+
+```rust
+
+fn main() {
+    let a = [1, 2, 3, 4, 5];
+    let slice = &a[1..3];
+}
+```
+
+## 5.struct
+
+### 5.1 定义并实例化 struct
+
+**什么是 struct**
+
+- struct，结构体
+  - 自定义的数据类型
+  - 为相关联的值命名，打包 => 有意义的组合
+
+**定义 struct**
+
+- 使用 **struct** 关键字，并未整个 struct 命名
+- 在花括号内，为所有`字段（Field）`定义名称和类型
+- 例如：
+
+```rust
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+}
+```
+
+**实例化 struct**
+
+- 想要使用 struct，需要创建 struct 的实例
+  - 为每个字段指定具体值
+  - 无需按声明的顺序进行指定
+- 例子
+
+```rust
+let user1 = User {
+        email: String::from("chovrio@....."),
+        username: String::from("chovrio"),
+        sign_in_count: 1,
+        active: true,
+    };
+```
+
+**取得 struct 里面的某个值**
+
+- 使用点标记法
+- user1.email = String::from("Autumn@...")
+
+```rust
+let mut user1 = User {
+        email: String::from("chovrio@....."),
+        username: String::from("chovrio"),
+        sign_in_count: 1,
+        active: true,
+    };
+```
+
+- 一旦 struct 的实例是可变的，那么实例中所有的字段都是可变的
+
+**struct 作为函数的返回值**
+
+字段同名可以简化
+
+```rust
+fn build_user(email: String, username: String) -> User {
+    User {
+        email,
+        username,
+        active: true,
+        sign_in_count: 1,
+    }
+}
+```
+
+**struct 更新语法**
+
+- 当你想要基于某个 struct 实例来创建一个新实例的时候，可以使用 struct 更新语法：
+
+```rust
+let user2 = User {
+        email: String::from("AAAA"),
+        username: String::from("BBB"),
+        ..user1
+    };
+```
+
+**Tuple struct**
+
+- 可定义类似 tuple 的 struct，叫做 tuple struct
+  - Tuple struct 整体有个名，但里面的元素没有名
+  - 适用：想给整个 tuple 起名

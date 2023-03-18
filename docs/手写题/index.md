@@ -318,3 +318,117 @@ function resolvePromise(promise2, x, resolve, reject) {
   }
 }
 ```
+
+## 4.实现发布订阅模式
+
+**作用：**
+
+- 广泛应用于异步编程中
+- 对象之间松散耦合的编写代码
+
+**缺点：**
+
+- 创建订阅者本身需要一定的时间和内存
+- 多个发布者和订阅者嵌套一起的时候，程序难以跟踪维护
+
+**思路：**
+
+- 创建一个对象(缓存列表)
+- `on`方法用来把回调函数 fn 都加到缓存列表中
+- `emit`根据`key`值去执行对应缓存列表中的函数
+- `off`方法可以根据`key`值取消订阅
+
+最典型的发布订阅模式就是 dom 对象的事件绑定
+
+我们也可以通过 Event 自定义事件
+
+```js
+class EventEmiter {
+  constructor() {
+    // 事件对象，存放订阅的名字和事件
+    // 名字只有一个 但是事件有多个 因为可以多次订阅
+    this._events = {};
+  }
+  // 订阅事件的方法
+  on(eventName, callback) {
+    if (!this._events) {
+      this._events = {};
+    }
+    // 合并之前订阅的的回调函数
+    this._events[eventName] = [...(this._events[eventName] || [])];
+  }
+  // 触发事件的方法
+  emit(eventName, ...args) {
+    // 没有订阅事件的话就直接返回
+    if (!this._events[eventName]) {
+      return;
+    }
+    // 执行所有订阅的函数
+    this._events[eventName].forEach((cb) => cb(...args));
+  }
+  // 删除订阅的函数
+  off(eventName, cb) {
+    if (!this._events[eventName]) {
+      return;
+    }
+    // 删除订阅的事件
+    this._events[eventName] = this._events.filter(
+      // l 是自定义属性 用来区分是不是函数本身
+      (fn) => fn !== cb && fn.l !== cb
+    );
+  }
+  // 只触发一次，然后就移除订阅
+  once(eventName, cb) {
+    const one = (...args) => {
+      cb(args);
+      // 执行完立即删除
+      this.off(eventName, one);
+    };
+    one.l = callback; // 自定义属性
+    this.on(eventName, one);
+  }
+}
+```
+
+## 5.实现观察者模式
+
+基于发布订阅模式，有观察者，也有被观察者
+
+```js
+// 被观察的类
+class Subject {
+  constructor(name) {
+    this.name = name;
+    this.state = "非常开心";
+    this.observers = [];
+  }
+  // 添加观察者
+  attach(o) {
+    this.observers.push(o);
+  }
+  // 设置状态
+  steState(newState) {
+    this.state = newState;
+    this.observers.forEach((o) => o.update(this.name, this.state));
+  }
+}
+// 观察者的类
+class Observer {
+  constructor(name) {
+    this.name = name;
+  }
+  update(name, state) {
+    console.log(`${this.name}观察到${name}变得${state}`);
+  }
+}
+
+let s = new Subject("小宝宝");
+let o1 = new Observer("爸爸");
+let o2 = new Observer("妈妈");
+s.attach(o1);
+s.attach(o2);
+s.steState("不开心了");
+// 设置状态后的两条输出
+// 爸爸观察到小宝宝变得不开心了
+// 妈妈观察到小宝宝变得不开心了
+```
