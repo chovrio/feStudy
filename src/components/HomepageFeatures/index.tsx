@@ -60,7 +60,7 @@ export default function HomepageFeatures(): JSX.Element {
       <div>
         hhh，下定决心找实习了，谢谢你总在关键时刻推我一把，无论是以前或是现在
       </div>
-      <img src="/img/很不错对吧.jpg" alt="" />
+      <img src={require("@site/static/img/很不错对吧.jpg").default} alt="" />
     </div>
   );
 }

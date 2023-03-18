@@ -1324,3 +1324,192 @@ fn main() {
 - Cargo 把 crate root 文件交给 rustc 来构建 library 或 binary
 - 一个 Package 可以同时包含 src/main.rs 和 src/lib.rs
   - 一个 binary create，一个 library create
+  - 名称与 package 名相同
+- 一个 Package 可以有多个 binary crate：
+  - 文件放在：src/bin
+  - 每个文件是单独的 binary crate
+
+#### 7.1.4 Crate 的作用
+
+- 将相关功能组合到一个作用域内，便于在项目将进行共享
+  - 防止冲突
+- 例如 rand crate，访问它的功能需要通过它的名字：rand
+
+#### 7.1.5 定义 module 来控制作用域和私有性
+
+- Module：
+  - 在一个 crate 内，将代码进行分组
+  - 增加可读性，易于复用
+  - 控制项目（item）的私有性。public、private
+- 建立 module
+  - mod 关键字
+  - 可嵌套
+  - 可包含其它项（struct，enum，常量，trait，函数等）的定义
+- src/main.rs 和 src/lib.rs 叫做 crate roots：
+  - 这两个文件（任意一个）的内容形成了名为 crate 的模块，位于整个模块树的根部
+
+```rust
+mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+        fn seat_at_table() {}
+    }
+    mod serving {
+        fn take_order() {}
+        fn serve_order() {}
+        fn take_payment() {}
+    }
+}
+```
+
+### 7.2 路径
+
+- 为了在 Rust 的模块中找到某个条目，需要使用`路径`。
+- 路径的两种形式：
+  - 绝对路径：从 crate root 开始，使用 crate 名或字面值 crate
+  - 相对路径：从当前模块开始，使用 self，super 或当前模块的标识符
+- 路径至少由一个标识符组成，标识符之间使用::。
+
+#### 7.2.1 私有边界（privacy boundary）
+
+- 模块不仅可以组织代码，还可以定义私有边界。
+- 如果想把函数或 struct 等设为私有，可以将它放在某个模块中。
+- Rust 中所有的条目（函数，方法，struct，enum，模块，常量）默认是私有的
+- 父级模块无法访问子模块中的私有条目
+- 子模块里可以使用所有祖先模块中的条目
+
+#### 7.2.1 pub 关键字
+
+- 使用 pub 关键字来将某些条目标记为公共的
+
+```rust
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+pub fn eat_at_restaurant() {
+    crate::front_of_house::hosting::add_to_waitlist();
+    front_of_house::hosting::add_to_waitlist();
+}
+```
+
+#### 7.2.2 super 关键字
+
+- `super`:用来访问父级模块路径中的内容，类似文件系统中的..
+
+```rust
+fn serve_order() {}
+mod back_of_house {
+    use crate::cook_order;
+
+    fn fix_incorrect_order() {
+        cook_order();
+        super::serve_order(); // 相对
+        crate::serve_order(); // 绝对
+    }
+}
+fn cook_order() {}
+```
+
+#### 7.2.3 pub struct 关键字
+
+- pub 放在 struct 前：
+  - struct 是公共的
+  - struct 的字段默认是私有的
+- struct 的字段需要单独设置 pub 来变成共有
+
+```rust
+mod back_of_house {
+    pub struct BreakFast {
+        pub toast: String,
+        seasonal_fruit: String,
+    }
+    impl BreakFast {
+        pub fn summer(toast: &str) -> BreakFast {
+            BreakFast {
+                toast: String::from(toast),
+                seasonal_fruit: String::from("peaches"),
+            }
+        }
+    }
+}
+pub fn eat_at_restaurant() {
+    let mut meal = back_of_house::BreakFast::summer("Rye");
+    meal.toast= String::from("Wheat");
+    println!("I'd like {} toast please", meal.toast);
+    meal.seasonal_fruit = String::from("blueberries");// 报错
+}
+```
+
+#### 7.2.4 pub enum
+
+- pub 放在 enum 前 :
+  - enum 是`公共`的
+  - enum 的变体也都是`公共`的
+
+### 7.3 use 关键字
+
+- 可以使用`use`关键字将路径导入到作用域内
+  - 仍遵循私有性规则
+- 使用 use 来指定相对路径
+
+#### 7.3.1 use 的习惯用法
+
+- 函数：将函数的父级模块引入作用域（指定到父级）
+- struct，enum，其它：指定完整路径（指定到本身）
+- 同名条目：指定到父级
+
+#### 7.3.2 使用 pub use 重新导入名称
+
+- 使用 use 将路径（名称）导入到作用域内后，该名称在此作用域内是`私有`的
+- pub use：重导出
+  - 将条目引入作用域
+  - 该条目可以被外部代码引入到它们的作用域
+
+#### 7.3.3 使用外部包（package）
+
+1. Cargo.toml 添加依赖的包（package）
+
+- https://crates.io/
+
+2. use 将特定条目引入作用域
+
+- 标准库（std）也被当做外部包
+  - 不需要修改 Cargo.toml 文件来包含 std
+  - 需要使用 use 将 std 中的特定条目引入当前作用域
+
+#### 7.3.4 使用`嵌套路径`清理大量的 use 语句
+
+- 如果使用同一个包或模块下的多个条目（例子）
+- 可以使用嵌套路径在同一行内将上述条目进行引入：
+  - 路径相同的部分::{路径差异的部分}
+
+```rust
+use std::cmp::Ordering;
+use std::io;
+use std::{cmp::Ordering, io};
+use std::io::{self,Write}
+```
+
+#### 7.3.5 通配符\*
+
+- 使用\*可以把路径中所有的公共条目都引入到作用域
+
+```rust
+use std::collections::*;
+```
+
+- 注意：谨慎使用
+- 引用场景：
+  - 测试，将所有被测试代码引入 tests 模块
+  - 有时被用于预导入（prelude）模块
+
+### 7.4 将模块拆分为不同文件
+
+#### 7.4.1 将模块内容移动到其它文件
+
+- 模块定义时，如果模块名后边是“;”，而不是代码块：
+  - Rust 会从与模块同名的文件中加载内容
+  - 模块树的结构不会发生变化
+- 随着模块逐渐变大，该技术让你可以把模块的内容移动到其它文件中
