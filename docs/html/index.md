@@ -251,4 +251,57 @@ canvas 指纹追踪技术的实现步骤大致如下：
 - 防止不必要的安全问题
 
 ## 15.如何进行网站性能优化
-- 
+
+- 合并静态资源，减少 HTTP 请求次数
+- 压缩代码(打包)
+- 使用 CDN，加快资源加载速度
+- 使用懒加载，按需加载图片和视频
+- 使用 CSS3 动画，减少 JavaScript 开销
+
+## 16.重绘和回流（重排）是什么，应该如何避免？
+
+**概念：**重绘和回流是浏览器渲染页面的两个过程。重绘是指元素的外观发生改变，但不影响布局，如颜色、北京等。回流是指元素的尺寸、位置或结构发生改变，影响布局，如宽高、编剧、插入或删除节点等。
+
+回流比重绘更耗费性能，因为回流会导致整个渲染树的重新计算和构建。回流必定触发重绘，而重绘不一定触发回流
+
+为了避免频繁的重绘和回流，可以采取以下一些方法：
+
+- 尽可能在 DOM 树的最末端改变 class
+- 避免设置多层内联样式
+- 动画效果应用到 position 属性为 absolute 或 fixed 的元素上
+- 避免使用 table 布局
+- 使用 css3 硬件加速，可以让 transform、opacity、filters 等动画效果不会引起回流重绘
+- 集中改变样式，一次性更改 style 属性或使用 cssText 属性
+
+## 17.CSS3 中的 animation
+
+CSS3 中的 animation 属性是用来创建动画效果的，可以让元素在一段时间内逐渐从一种样式变化成另一种样式。
+
+要使用 animation 属性，首先要定义一个或多个关键帧(@keyframes)，指定元素在不同时间点的样式。
+
+然后，要把 animation 属性绑定到一个选择器上，并指定动画的名称、时长等参数。
+
+animation 属性是一个简写属性，包含了以下六个子属性：
+
+- animation-name：指定动画的名称
+- animation-duration：指定动画的时长
+- animation-timing-function：指定动画的速度曲线
+- animation-delay：指定动画的延迟时间
+- animation-iteration-count：指定动画的播放次数
+- animation-direction：指定动画的播放方向
+
+例如，以下代码定义了一个名为 myanimation 的动画，让 div 元素在 5s 内从红色变成黄色
+
+```rust
+@keyframes myanimation {
+  0% {
+    background-color: red;
+  }
+  100% {
+    background-color: yellow;
+  }
+}
+div {
+  animation: myanimation 5s;
+}
+```

@@ -1,0 +1,11 @@
+@keyframes myanimation {
+  0% {
+    background-color: red;
+  }
+  100% {
+    background-color: yellow;
+  }
+}
+div {
+  animation: myanimation 5s;
+}

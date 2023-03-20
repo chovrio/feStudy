@@ -1513,3 +1513,366 @@ use std::collections::*;
   - Rust 会从与模块同名的文件中加载内容
   - 模块树的结构不会发生变化
 - 随着模块逐渐变大，该技术让你可以把模块的内容移动到其它文件中
+
+## 8.常用的集合
+
+- Vector
+- String
+- HashMap
+
+### 8.1 Vector
+
+- `Vec<T>` 叫做 vector
+  - 由标准库提供
+  - 可存储多个值
+  - 只能存储相同类型的数据
+  - 值在内存中连续存放
+
+#### 8.1.1 创建 Vector
+
+- Vec::new 函数
+- ` let v: Vec<i32> = Vec::new();`
+- 使用初始值创建 Vec <T\>,使用 vec!宏
+  - `let v = vec![1, 2, 3];`
+
+#### 8.1.2 删除 Vector
+
+- 与任何其它 struct 一样，但 Vector 离开作用域后
+  - 它就被清理掉了
+  - 它所有的元素也被清理掉了
+
+#### 8.1.3 读取 Vector 的元素
+
+- `两种方式可以引用`Vector 里的值
+  - 索引
+  - get 方法
+
+```rust
+fn main() {
+    let v = vec![1, 2, 3, 4, 5];
+    let third: &i32 = &v[1];
+    println!("The third element is {}", third);
+    match v.get(2) {
+        Some(third) => println!("The third element is {}", third),
+        None => println!("The is no third element"),
+    }
+}
+```
+
+#### 8.1.4 所有权和借用规则
+
+- 不能在统一作用域内同时拥有可变和不可变引用
+
+```rust
+fn main() {
+    let mut v = vec![1, 2, 3, 4, 5];
+    let first = &v[0];
+    v.push(6);// 报错
+    println!("The first element is {}", first);
+}
+```
+
+#### 8.1.5 遍历 Vector 中的值
+
+```rust
+fn main() {
+    let mut v = vec![100, 32, 57];
+    for i in &mut v {
+        // * 是取这个地址的值
+        *i += 50;
+        println!("{}", i);
+    }
+}
+```
+
+### 8.2 Vector-例子
+
+#### 8.2.1 使用 enum 来存储多种数据类型
+
+- Enum 的变体可以附加不同类型的数据
+- Enum 的变体定义在同一个 enum 类型下
+
+```rust
+enum SpreadsheetCell {
+    Int(i32),
+    Float(f64),
+    Text(String),
+}
+fn main() {
+    let row = vec![
+        SpreadsheetCell::Int(3),
+        SpreadsheetCell::Text(String::from("blue")),
+        SpreadsheetCell::Float(10.12),
+    ];
+}
+```
+
+### 8.3 String
+
+#### 8.3.1 Rust 开发者经常会被字符串困扰的原因
+
+- Rust 倾向于暴露可能的错误
+- 字符串数据结构复杂
+- UTF-8
+
+#### 8.3.2 字符串是什么
+
+- Byte 的集合
+  - 一些方法
+    - 能将 byte 解析为文本
+- Rust 的`核心语言层面`,只有一个字符串类型:字符串切片`str`(或&str)
+- 字符串切片:对存储在其它地方 UTF-8 编码的字符串的引用
+  - 字符串字面值:存储在二进制文件中,也是字符串切片
+- `String`类型:
+  - 来自`标准库`而不是核心语言
+  - 可增长,可修改,可拥有
+
+#### 8.3.3 通常说的字符串是指?
+
+- String 和&str
+  - 标准库里用的多
+  - UTF-8 编码
+- 本节课讲的主要是 String
+
+#### 8.3.4 其它类型的字符串
+
+- Rust 的标准库还包含了很多其它的字符串类型,例如:OsString,OsStr,CString,CStr
+  - String vs Str 后缀:拥有或借用的变体
+  - 可存储不同编码的文本或在内存中以不同的形式展示
+- Library crate 针对存储字符串可提供更多的选项
+
+#### 8.3.5 创建一个新的字符串(String)
+
+- 很多`Vec<T>`的操作都可以用于 String.
+- String::new()函数
+- 使用初始值来创建 String:
+  - to_string()方法,可用于实现了 Display trait 的类型,包括字符串字面值(例子)
+  - String::from()函数,从字面量创建 String(例子)
+
+```rust
+fn main() {
+    // let mut s = String::new();
+    let data = "initial contents";
+    let s = data.to_string();
+    let s1 = "initial contents".to_string();
+    let s = String::from("initial contents");
+}
+```
+
+#### 8.3.6 更新 String
+
+- push_str()方法:把一个字符串切片附加到 String(例子)
+- push 方法:把单个字符附加到 String
+- - 连接字符串
+  * 使用了类似这个签名的方法 fn add(slef,s:&str) -> { ... }
+    - 标准库中的 add 方法使用了泛型
+    - 只能把&str 添加到 String
+    - 解引用强制转换(deref coercion)
+- format!:连接多个字符串(例子)
+
+```rust
+fn main() {
+    let mut s = String::from("foo");
+    let s1 = String::from("bar");
+    s.push_str(&s1);
+    s.push('h');
+    println!("{}", s);
+    let a = String::from("aaaaa");
+    let b = String::from("BBBBB");
+    let c = a + &b;
+    println!("{}", c);// aaaaaBBBBB
+    println!("{}", a); // 报错
+    println!("{}", b);
+    println!("{}", c);
+}
+```
+
+```rust
+fn main() {
+    let s1 = String::from("tic");
+    let s2 = String::from("tac");
+    let s3 = String::from("toe");
+    // let s3 = s1 + "-" + &*s2 + "-" + &s3;
+    // println!("{}", s3);
+    let s = format!("{}-{}-{}", s1, s2, s3);
+    println!("{}", s)
+}
+```
+
+#### 8.3.7 对 String 按索引的形式进行访问
+
+- 按索引语法访问 String 的某部分,会报错
+- Rust 的字符串不支持索引语法访问
+
+#### 8.3.8 String 类型的内部表示
+
+- String 是对`Vec<u8>`的包装
+
+#### 8.3.9 字节,标量值,字形簇
+
+**Bytes,Scalar,Grapheme Clusters**
+
+- Rust 有三种看待字符串的方式:
+  - 字节 bytes
+  - 标量值 chars
+  - 字形簇
+- Rust 不允许对 String 进行索引的最后一个原因:
+  - 索引操作应消耗一个 v 额产量时间(O(1))
+  - 而 String 无法保证:需要遍历所有内容,来确定由多少个合法的字符.
+
+#### 8.3.10 切割 String
+
+- 可以使用`[]`和`一个范围`来创建字符串的切片
+  - 必须谨慎使用
+  - 如果切割时跨越了字符边界,程序就会 panic
+  - `(b1,b2),(b3,`b3)(b4,b5),(b7,b7)
+    - panic
+
+#### 8.3.11 遍历 String 的方法
+
+- 对于标量值:chars()方法
+- 对于字节:bytes()方法
+- 对于字形簇:很复杂,标准库未提供
+
+```rust
+fn main() {
+    let w = "哈哈哈";
+    for b in w.bytes() {
+        println!("{}", b);
+    }
+    for b in w.chars() {
+        println!("{}", b);
+    }
+}
+```
+
+**String 不简单**
+
+- Rust 选择将正确处理 String 数据作为所有 Rust 程序的默认行为
+  - 程序员必须在处理 UTF-8 数据之前投入更多的精力
+- 可防止在开发后期处理涉及非 ASCII 字符的错误
+
+### 8.4 HashMap
+
+**`HashMap<K,v>`**
+
+- 键值对的形式存储数据,一个键(Key)对应一个值(value)
+- Hash 函数:决定如何在内存中存放 K 和 V
+
+#### 8.4.1 创建 HashMap
+
+- 创建空 HashMap:new()函数
+- 添加数据:insert()方法
+- HashMap 用的较少,不在 prelude 中
+- 标准库对其支持较少,没有内置的宏来创建 HashMap
+- 数据存储在 heap 上
+- 同构的, 一个 HashMap 中:
+  - 所有的 K 必须是同一种类型
+  - 所有的 V 必须是同一种类型
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    // let mut scores: HashMap<String, i32> = HashMap::new();
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("yellow"), 50);
+}
+```
+
+#### 8.4.2 另一种创建 HashMap 的方式:collect 方法
+
+- 在元素类型为 Tuple 的 Vector 上使用 collect 方法,可以组建一个 HashMap:
+  - 要求 Tuple 有两个值:一个作为 K,一个作为 V
+  - collect 方法可以把数据整合成很多种集合类型,包括 HashMap
+    - 返回值需要显式指明类型
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    let teams = vec![String::from("Blue"), String::from("Yellow")];
+    let intial_scores = vec![10, 50];
+    let scores: HashMap<_, _> = teams.iter().zip(intial_scores.iter()).collect();
+}
+```
+
+#### 8.4.3 HashMap 和所有权
+
+- 对于实现了 Copy trait 的类型(例如 i32),值会被复制到 HashMap 中
+- 对于拥有所有权的值(例如 String),值会被移动,所有权会转移给 HashMap
+- 如果将值的引用插入到 HashMap,值本身不会移动
+
+```rust
+fn main() {
+    let field_name = String::from("Favorite color");
+    let field_value = String::from("Blue");
+    let mut map = HashMap::new();
+    // 使用这种方式插不会丧失所有权
+    // map.insert(&field_name, &field_value);
+    // 丧失所有权,再次调用会报错
+    map.insert(field_name, field_value);
+    // println!("{}", field_name); // 报错
+}
+```
+
+#### 8.4.4 访问 HashMap 中的值
+
+- get 方法
+  - 参数：K
+  - 返回：`Option<&V>`
+
+```rust
+use std::collections::HashMap;
+fn main() {
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+    let team_name = String::from("Blue");
+    let score = scores.get(&team_name);
+    match score {
+        Some(s) => println!("{}", s),
+        None => println!("team not exist"),
+    }
+}
+```
+
+#### 8.4.5 遍历 HashMap
+
+- for 循环
+
+```rust
+for (k, v) in &scores {
+    println!("{}:{}", k, v);
+}
+```
+
+#### 8.4.6 更新 HashMap<K,V>
+
+- HashMap 大小可变
+- 每个 K 同时只能对应一个 V
+- 更新 HashMap 中的数据：
+  - K 已经存在，对应一个 V
+    - 替换现有的 V
+    - 保留现有的 V，忽略新的 V
+    - 合并现有的 V 和新的 V
+
+**替换现有的 V**
+
+- 如果向 HashMap 插入一对 KV，然后再插入同样的 K，但是不同的 V，那么原来的 V 会被替换掉
+
+```rust
+fn main() {
+   let mut scores = HashMap::new();
+   scores.insert(String::from("Blue"), 10);
+   scores.insert(String::from("Blue"), 25);
+   println!("{:?}", scores);
+}
+```
+
+**只有 K 不对应任何值得情况下，才插入 V**
+
+- entry 方法：检查指定得 K 是否对应一个 V
+  - 参数为 K
+  - 返回 enum Entry：代表值是否存在
