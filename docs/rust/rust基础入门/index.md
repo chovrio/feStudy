@@ -2123,3 +2123,388 @@ fn main() {
 - 调用你的代码，传入无意义的参数值：panic!
 - 调用外部不可控代码，返回非法状态，你无法修复：panic!
 - 如果失败是可预期的：Result
+- 当你的代码对值进行操作，首先应该验证这些值：panic!
+
+**为验证创建自定义类型**
+
+- 创建新的类型，把验证逻辑放在构造实例的函数里。
+- getter: 返回字段数据
+  - 字段是私有的（下例中）：外部无法直接对字段赋值
+
+```rust
+pub struct Guess {
+    value: i32,
+}
+
+impl Guess {
+    pub fn new(value: i32) -> Guess {
+        if value < 1 || value > 100 {
+            panic!("Guess value must be between 1 and 100 , got {}", value);
+        }
+        Guess { value }
+    }
+    pub fn value(&self) -> i32 {
+        self.value
+    }
+}
+
+fn main() {
+    loop {
+        // todo...
+        let guess = "32";
+        let guess: i32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+
+        let guess = Guess::new(guess);
+        // todo...
+    }
+}
+```
+
+## 10 泛型，Trait，生命周期
+
+### 10.1 提取函数消除重复的代码
+
+- 重复代码的危害：
+  - 容易出错
+  - 需求变更时需要在多处进行修改
+- 消除重复：提取函数
+
+```rust
+fn largest(list: &[i32]) -> i32 {
+    let mut largest = list[0];
+    for &item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+    let result = largest(&number_list);
+    println!("The largest number is {}", result);
+    let number_list = vec![34, 50, 25, 6000, 65];
+    let result = largest(&number_list);
+    println!("The largest number is {}", result);
+}
+```
+
+**消除重复的步骤**
+
+- 识别重复代码
+- 提取重复代码到函数体中，并在函数签名中指定函数的输入和返回值
+- 将重复的代码使用函数调用进行替代
+
+### 10.2 泛型
+
+- 泛型：提高代码`复用`能力
+  - 处理重复代码的问题
+- 泛型是具体类型或其它属性的抽象代替：
+  - 你编写的代码不是最终的代码，而是一种`模板`，里面有一些`占位符`。
+    编译器在`编译时`将”占位符“`替换为具体的类型`。
+- 例如：fn largest<T\>(list:&[T]) -> T{ ... }
+- 类型参数：
+  - 很短，通常一个字母
+  - CamelCase
+  - T：type 的缩写
+
+#### 10.2.1 函数定义中的泛型
+
+- 泛型函数：
+  - 参数类型
+  - 返回类型
+
+例子有点小问题，但和 typescript 差不多
+
+```rust
+fn largest<T: std::cmp::PartialOrd>(list: &[T]) -> T {
+    let mut largest = list[0];
+    for &item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+    largest
+}
+
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+    let result = largest(&number_list);
+    println!("The largest number is {}", result);
+    let char_list = vec!['y', 'm', 'a', 'q'];
+    let result = largest(&char_list);
+    println!("The largest char is {}", result);
+}
+```
+
+#### 10.2.2 Struct 中定义的泛型
+
+- 可以使用多个泛型的类型参数
+  - 太多类型参数：你的代码需要重组为多个更小的单元
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+}
+```
+
+#### 10.2.3 Enum 定义中的泛型
+
+- 可以让枚举的变体持有泛型数据类型
+  - 例如 Option<T\>,Result<T,E\>
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+fn main() {}
+```
+
+#### 10.2.4 方法定义中的泛型
+
+- 为 struct 或 enum 实现方法的时候，可在定义中使用泛型
+- 注意：
+  - 把 T 放在 impl 关键字后，表示在类型 T 上实现方法
+    - 例如：impl<T\> Point<T\>
+  - 只针对具体类型实现方法（其余类型没实现方法）
+    - 例如：impl Point<f32\>
+- struct 里的泛型类型参数可以和方法的泛型类型参数不同
+
+```rust
+struct Point<T, U> {
+    x: T,
+    y: U,
+}
+impl<T, U> Point<T, U> {
+    fn mixup<V, W>(self, other: Point<V, W>) -> Point<T, W> {
+        Point {
+            x: self.x,
+            y: other.y,
+        }
+    }
+}
+fn main() {
+    let p1 = Point { x: 5, y: 4 };
+    let p2 = Point {
+        x: "Hello",
+        y: "Rust",
+    };
+    let p3 = p1.mixup(p2);
+    println!("p3.x = {}, p3.y = {}", p3.x, p3.y);
+}
+```
+
+#### 10.2.5 泛型代码的性能
+
+- 使用泛型的代码和使用具体类型的代码运行速度是一样的。
+- 单态话（monomorphization）：
+  - 在编译时将泛型替换为具体类型
+
+```rust
+fn main() {
+    let integer = Some(5);
+    let float = Some(5.0);
+}
+enum Option_i32 {
+    Some(i32),
+    None,
+}
+enum Option_f64 {
+    Some(f64),
+    None,
+}
+fn main() {
+    let integer = Option_i32::Some(5);
+    let float = Option_f64::Some(5.0);
+}
+```
+
+### 10.3 Trait
+
+- Trait 告诉 Rust 编译器：
+  某种类型具有哪些并且可以与其它类型共享的功能
+- Trait：抽象的定义共享行为
+- Trait bounds（约束）：泛型类型参数指定为实现了特定行为的类型
+- Trait 与其他语言的接口（）interface 类似，但有些区别。
+
+#### 10.3.1 定义一个 Trait
+
+- Trait 的定义：把方法签名放在一起，来定义实现某种目的所必须的一组行为。
+  - 关键字：trait
+  - 只有方法签名，没有具体实现
+  - trait 可以有多个方法：每个方法签名占一行，以;结尾
+  - 实现该 trait 的类型必须提供具体的方法实现
+
+```rust
+pub trait Summary {
+    fn summarize(&self) -> String;
+}
+```
+
+#### 10.3.2 在类型上实现 trait
+
+- 与为类型实现方法类似。
+- 不同之处：
+  - impl Xxxx for Tweet { ... }
+  - 在 impl 的块里，需要对 Trait 里的方法签名进行具体的实现
+
+```rust
+pub trait Summary {
+    fn summarize(&self) -> String;
+}
+pub struct NewsArticle {
+    pub headline: String,
+    pub location: String,
+    pub author: String,
+    pub content: String,
+}
+impl Summary for NewsArticle {
+    fn summarize(&self) -> String {
+        format!("{}, by {} ({})", self.headline, self.author, self.location)
+    }
+}
+pub struct Tweet {
+    pub username: String,
+    pub content: String,
+    pub reply: bool,
+    pub retweet: bool,
+}
+impl Summary for Tweet {
+    fn summarize(&self) -> String {
+        format!("{}:{}", self.username, self.content)
+    }
+}
+
+use demo::Summary;
+use demo::Tweet;
+fn main() {
+    let tweet = Tweet {
+        username: String::from("horse_ebooks"),
+        content: String::from("of course, as you probably already know, people"),
+        reply: false,
+        retweet: false,
+    };
+    println!("1 new tweet:{}", tweet.summarize());
+}
+```
+
+#### 10.3.3 实现 trait 的约束
+
+- 可以在某个类型上实现某个 trait 的前提条件是：
+  - 这个类型或这个 trait 是在本地 crate 里定义的
+- 无法为外部类型来实现外部的 trait：
+  - 这个限制是程序属性的一部分（也就是`一致性`）。
+  - 更具体地说是`孤儿原则`：之所以这样命名是因为父类型不在。
+  - 此规则确保其他人的代码不能破话你的代码，反之亦然
+  - 如果没有这个规则，两个 crate 可以为同一类型实现同一个 trait，Rust 就不知道应该使用哪个实现了。
+
+#### 10.3.4 默认实现
+
+- 默认实现的方法可以调用 trait 中其它的方法，即使这些方法没有默认实现
+- 注意：无法从方法的重写实现里面调用默认的实现
+
+```rust
+pub trait Summary {
+    fn summarize_author(&self) -> String;
+    fn summarize(&self) -> String {
+        String::from("Read more...")
+    }
+}
+```
+
+- Trait 作为参数
+- impl Trait 语法：适用于简单情况
+- Trait bound 语法：可用于复杂情况
+  - impl Trait 语法是 Trait bound 的语法糖
+- 使用+ 指定多个 Traitboun
+- Trait bound 使用 where 子句
+  - 可以在方法签名后指定 where 子句
+
+#### 10.3.5 实现 trait 作为返回类型
+
+- impl Trait 语法
+- 注意：impl Trait 只能返回确定的同一种类型，返回可能不同类型的代码会报错
+
+```rust
+pub fn notify1(flag: bool) -> impl Summary {
+    if flag {
+        NewsArticle {
+            headline: String::from("hello"),
+            content: String::from("World"),
+            author: String::from("chovrio"),
+            location: String::from("重庆"),
+        }
+    } else {
+        Tweet {
+            username: "chovrio",
+            content: "hahahah",
+            reply: true,
+            retweet: false,
+        }
+    }
+}
+```
+
+#### 10.3.6 使用 Trait Bound
+
+```rust
+fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
+    let mut largest = list[0];
+    for &item in list.iter() {
+        if item > largest {
+            largest = item
+        }
+    }
+    largest
+}
+fn main() {
+    let number_list = vec![34, 50, 25, 100, 65];
+    let result = largest(&number_list);
+}
+```
+
+**使用 Trait Bound 有条件的实现方法**
+
+- 在使用泛型类型参数的 impl 块上使用 Trait bound，我们可以有条件的为实现了特定 Trait 的类型来实现方法
+- 也可以为实现了其它 Trait 的任意类型有条件的实现某个 Trait
+- 为满足Trait Bounrd的所有类型上实现Trait叫做覆盖实现（blankt implementations）
+```rust
+struct Pair<T> {
+    x: T,
+    y: T,
+}
+impl<T> Pair<T> {
+    fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+impl<T: Display + PartialOrd> Pair<T> {
+    fn cmp_display(&self) {
+        if self.x >= self.y {
+            println!("The largest member is x = {}", self.x);
+        } else {
+            println!("The largest member is y ={}", self.y);
+        }
+    }
+}
+
+fn main() {
+    let str = 3.to_string();
+}
+```
+
+### 10.4 生命周期
