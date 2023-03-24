@@ -31,3 +31,12 @@ ws://localhost:80/test
 ## 安全连接
 wss://localhost:80/test
 ```
+
+websocket 的一些要点
+
+- 消息推送(同步)
+- webrtc 信令服务
+
+1. 什么是 websocket
+2. websocket 和 http 的区别
+3. websocket 建立连接和结束连接
