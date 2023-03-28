@@ -340,3 +340,241 @@ obj.fn(); // obj
 obj._fn(); // undefined
 obj.__fn(); // obj
 ```
+
+3. 箭头函数继承来的 this 指向永远不会改变
+
+```js
+var id = "GLOBAL";
+var obj = {
+  id: "OBJ",
+  a: function () {
+    console.log(this.id);
+  },
+  b: () => {
+    console.log(this.id);
+  },
+};
+obj.a(); // 'OBJ'
+obj.b(); // 'GLOBAL'
+new obj.a(); // undefined
+new obj.b(); // Uncaught TypeError: obj.b is not a constructor
+```
+
+4. call()、apply()、bind()等方法不能改变箭头函数中 this 的指向
+
+```js
+var id = "Global";
+let fun1 = () => {
+  console.log(this.id);
+};
+fun1(); // 'Global'
+fun1.call({ id: "Obj" }); // 'Global'
+fun1.apply({ id: "Obj" }); // 'Global'
+fun1.bind({ id: "Obj" })(); // 'Global'
+```
+
+5. 箭头函数不能作为构造函数使用
+
+由于箭头函数时没有自己的 this，且 this 指向外层的执行环境，且不能改变指向，所以不能当做构造函数使用。
+
+6. 箭头函数没有自己的 arguments
+
+箭头函数没有自己的 arguments 对象。在箭头函数中访问 arguments 实际上获得的是它外层函数的 arguments 值。
+
+7. 箭头函数没有 prototype
+
+8. 箭头函数的 this 指向哪⾥？
+
+箭头函数不同于传统 JavaScript 中的函数，箭头函数并没有属于⾃⼰的 this，它所谓的 this 是捕获其所在上下⽂的 this 值，作为⾃⼰的 this 值，并且由于没有属于⾃⼰的 this，所以是不会被 new 调⽤的，这个所谓的 this 也不会被改变。
+
+## 5. 闭包
+
+**闭包的概念**
+
+函数嵌套函数，内部函数可以引用外部函数的参数和变量。参数和变量不会被垃圾回收机制回收。
+
+```js
+function fn(a) {
+  let i = 0;
+  return function () {
+    i++;
+    // 访问a 和 i
+    console.log(a, i);
+  };
+}
+
+let newFn = fn("newFn");
+newFn(); // newFn 1
+newFn(); // newFn 2
+newFn(); // newFn 3
+```
+
+**补充内容：垃圾回收机制**
+
+1. 标记清除
+
+- js 会对变量做一个标记 yes or no 的标签以供 js 引擎来处理，但变量在某个环境下被使用则标记为 yes，但超出改环境（可以理解为超出作用域）则标记为 no，然后队友 no 的标签进行释放
+
+2. 引用计数
+
+- 对于 js 中引用类型的变量，采用引用计数的内存回收机制，当一个引用类型的变量赋值给另一个变量时，引用计数会+1，而当其中又一个变量不再等于值时，引用计数会-1，如果引用计数为 0，则 js 引擎会将其释放掉
+
+**闭包的作用**
+相比全局变量和局部变量，闭包有两大特点：
+
+1. 闭包拥有全局变量不被释放的特点
+2. 闭包拥有局部变量的无法被外部访问的特点
+
+**闭包的好处**
+
+1. 可以让一个变量长期在内存中不被释放
+2. 避免全局变量的污染，和全局变量不同，闭包中的变量无法被外部使用
+3. 私有成员的存在，无法被外部调用，只能直接内部调用
+
+**闭包可以完成的功能**
+
+1. 防抖
+
+```js
+// 防抖 避免函数的重复调用 只会调用一次
+function Antishake(fn, wait) {
+  // 第一个参数是函数，第二个是间隔事件
+  let timer = null; // 声明一个变量来接收延时器 初始值为null
+  return function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn();
+    }, wait);
+  };
+}
+let fn = Antishake(() => {
+  console.log(1111);
+}, 2000);
+fn();
+```
+
+2. 节流
+
+```js
+// 节流
+function throttle(fn, wait) {
+  let timer = null; //节点阀
+  return function () {
+    if (timer) {
+      return;
+    }
+    timer = setTimeout(() => {
+      fn();
+      timer = null;
+    }, wait);
+  };
+}
+let fn = throttle(() => {
+  console.log(111);
+}, 5000);
+setInterval(() => {
+  fn();
+}, 1000);
+```
+
+**节流和防抖的区别**
+
+- 防抖避免重复执行 只执行一次
+- 节流减少执行次数 执行多次 但在一段时间里面只执行一次
+
+3. 函数柯里化
+
+```js
+function curry(fn) {
+  // 接收一个后面的参数，除了fn的参数
+  let args = Array.prototype.slice.call(arguments, 1); // 从下标1开始全部剪切
+  return function () {
+    let newArgs = args.concat(Array.from(arguments)); // 将内部函数和外部参数合并
+    if (newArgs.length < fn.length) {
+      return curry.call(this, fn, ...newArgs);
+    } else {
+      return fn.apply(this, newArgs);
+    }
+  };
+}
+function sum(a, b, c, d) {
+  console.log(a + b + c + d);
+}
+const fn = curry(sum);
+fn(1, 2)(3)()(4, 5); // 10
+```
+
+## 6. 事件循环（Event Loop）
+
+浏览器的事件循环分为同步和异步任务：所有同步任务都在主线程上执行，形成一个函数调用栈（执行栈），而异步则先放到任务队列（task queue）里，任务队列又分为红任务（macro-task）与微任务（micro-task）。下面的整个执行过程就是事件循环
+
+宏任务：script 内的代码，settimeout，setinterval，I/O、UI 交互事件 setImmediate(node，ie 浏览器环境)
+
+微任务：new Promise.then()、MutationObserver(html5 新特性)、Object.observe(已废弃)、process.nextTick(node 环境)
+
+若同时存在 promise 和 nextTick，则先执行 nextTick
+
+## 7. 虚拟 DOM 原理是什么？优缺点？
+
+虚拟 DOM 本质上是 JavaScript 对象，是对真实 DOM 的抽象，状态变更时，记录新树和旧树的差异，最后把差异更新到真正的 dom 中。
+
+虚拟 DOM 的作用：使用原生 js 或者 jQuery 写页面的时候会发现操作 DOM 是一件非常麻烦的一件事情，往往是 DOM 标签和 js 逻辑同时写在 js 文件里，数据交互时还是不是要写很多 input 隐藏域，如果没有好的代码规范的话，就会显得代码非常冗余混乱，耦合度过高难以维护。
+
+另一方面在浏览器里一遍又一遍的渲染 DOM 是非常非常消耗性能的，常常会出现页面卡死的情况；所以尽量减少对 DOM 的操作成为了优化前端性能的必要手段，vdom 就是将 DOM 的对比放在了 js 层，通过对比不同之处来选择新渲染 DOM 节点，从而提高渲染效率。
+
+**优点：**
+
+- 保证性能下限：虚拟 DOM 可以经过 diff 找出最小差异，然后批量进行 patch，这种操作虽然比不上手动优化，但是比起粗暴的 DOM 操作性能要好很多，因此，虚拟 DOM 可以保证性能下限
+- 无需手动操作 DOM：虚拟 DOM 的 diff 和 patch 都是在一次更新中自动进行的，我们无需手动操作 DOM，极大提高开发效率
+- 跨平台：虚拟 DOM 本质上 JavaScript 对象，而 DOM 与平台强相关，相比之下虚拟 DOM 可以进行更方便地跨平台操作，例如服务器渲染，移动端开发等等。
+
+**缺点：**
+
+- 无法进行极致优化：在一些性能要求极高得应用中虚拟 DOM 无法进行针对性得极致优化，比如 vscode 采用直接手动操作 DOM 得方式进行极端得性能优化
+
+**vue 和 react 在虚拟 DOM 的 diff 算法上做了哪些改进使速度更快**
+
+**Vue 的 diff 算法**
+
+diff 算法发生在虚拟 DOM 上
+
+判断是否是同一个节点：selector 和 key 都要一样
+
+diff 规则：
+
+- 只比较同层的节点，不同层不做比较。删除原节点，并且新建插入更新节点（实际开发中很少遇到）
+- 新旧节点是同层节点，但不是同一个节点，不做精细化比较。删除原节点，并且新建插入更新节点（实际开发中很少遇到）
+- 新旧节点是同层节点，也是同一个节点，需要做精细化比较
+
+**React 的 diff 算法**
+
+从左往右一次对比，利用元素的 index 和标识 lastIndex 进行比较，如果满足 index < lastIndex 就移动元素，删除和添加则各自按照规则调整
+
+跨层不比较，同层比较，跟 Vue 一样
+
+**diff 策略**
+
+新节点的位置是 lastIndex，旧节点的位置是 index。从新的节点中一次读取节点索引，对比旧的节点数根据索引
+
+- 不满足 index < lastIndex 的条件，不移动；满足 index < lastIndex 的条件，移动节点。
+- 每一次比较都需要重新设置 lastIndex=Math.max(index,lastIndex) (index,lastIndex 中的较大值)
+- 移动的节点在前一个被操作的节点后面
+- 如果从新的节点集合获取的节点在旧节点集合未找到，就是新增，lastIndex 为上一次的值不变。
+- 如果新的节点集合遍历完了，旧节点还有值就是删除，loop 删除掉
+
+最差的情况：如果把最后一个元素移动到最前面，react 会一次移动节点向后
+
+**对比**
+
+相同点：
+
+- React 和 Vue 的 diff 算法，都是不进行跨层级比较，只做同级比较
+
+不同点：
+
+- Vue 进行 diff 时，调用 patch 打补丁函数，一边比较一边给真实 DOM 打补丁
+- Vue 对比节点，当节点元素类型相同，但是 className 不同时，认为时不同类型的元素，删除重新创建，而 react 则认为时同类型节点，进行修改操作。
+- Vue 的列表比对，采用从两端到中间的方式，旧集合和新集合两端各存在两个指针，两两进行比较，如果匹配上了就按照新集合去调整旧集合，每次对比结束后，指针向队列中间移动；
+- 而 react 则是从左往右依次对比，利用元素的 index 和标识 lastIndex 进行比较，如果满足 index < lastIndex 就移动元素，删除和添加则各自按照规则调整；
+- 当一个集合把最后一个节点移动到最前面，react 会把前面的节点依次向后移动，而 Vue 只会把最后一个节点放在最前面，这样的操作来看，Vue 的 diff 性能是高于 react 的
+
