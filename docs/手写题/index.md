@@ -432,3 +432,182 @@ s.steState("不开心了");
 // 爸爸观察到小宝宝变得不开心了
 // 妈妈观察到小宝宝变得不开心了
 ```
+
+## 6. 实现一个批量请求函数，能够限制并发量
+
+```js
+function multiRequest(urls = [], maxNum) {
+  const len = urls.length;
+  const result = new Array(len).fill(false);
+  let count = 0;
+  return new Promise((resolve, reject) => {
+    while (count < maxNum) {
+      next();
+    }
+    function next() {
+      let current = count++;
+      if (current >= len) {
+        !result.includes(false) && resolve(result);
+        return;
+      }
+      fetch(urls[current])
+        .then((res) => {
+          result[current] = res;
+          if (current < len) {
+            next();
+          }
+        })
+        .catch((err) => {
+          result[count] = err;
+          if (current < len) {
+            next();
+          }
+        });
+    }
+  });
+}
+```
+
+## 7. 实现一个节流函数, 最后一次必须执行。
+
+**注：+new Date 与 new Date 唯一的区别就是+new Date 执行速度更快，因为它不需要创建一个新的对象**
+
+```js
+function throttle(fn, delay) {
+  let timer = null;
+  let lastTime = null;
+  return function () {
+    const now = +new Date();
+    if (lastTime && now < lastTime + delay) {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        lastTime = now;
+        fn.apply(this, arguments);
+      }, delay);
+    } else {
+      lastTime = now;
+      fn.apply(this, arguments);
+    }
+  };
+}
+```
+
+## 8. 数组转树结构
+
+```js
+const arr = [
+  {
+    id: 2,
+    name: "部门B",
+    parentId: 0,
+  },
+  {
+    id: 3,
+    name: "部门C",
+    parentId: 1,
+  },
+  {
+    id: 1,
+    name: "部门A",
+    parentId: 2,
+  },
+  {
+    id: 4,
+    name: "部门D",
+    parentId: 1,
+  },
+  {
+    id: 5,
+    name: "部门E",
+    parentId: 2,
+  },
+  {
+    id: 6,
+    name: "部门F",
+    parentId: 3,
+  },
+  {
+    id: 7,
+    name: "部门G",
+    parentId: 2,
+  },
+  {
+    id: 8,
+    name: "部门H",
+    parentId: 4,
+  },
+];
+
+function arrayToTree(arr, id = 1) {
+  let map = {};
+  for (let i = 0; i < arr.length; i++) {
+    const obj = arr[i];
+    if (obj.parentId < id) {
+      id = obj.id;
+    }
+    if (!map[obj.id]) {
+      map[obj.id] = { ...obj, children: [] };
+    }
+    if (map[obj.parentId]) {
+      map[obj.parentId].children.push({ ...obj, children: [] });
+    }
+  }
+  return map[id];
+}
+```
+
+## 9. 去除字符串中出现次数最少的字符，不改变原字符串的顺序。
+
+```js
+function removeLeastFrequentChar(str) {
+  const charCount = {};
+  let minCount = Infinity;
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (charCount[char]) {
+      charCount[char]++;
+    } else {
+      charCount[char] = 1;
+    }
+  }
+  for (const count of Object.values(charCount)) {
+    if (count < minCount) {
+      minCount = count;
+    }
+  }
+  let result = "";
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (charCount[char] !== minCount) {
+      result += char;
+    }
+  }
+  return result;
+}
+```
+
+## 10. 写一个函数 trans，将数字转换成汉字的输出
+
+```js
+/**
+ *
+ * @param {number} num
+ * @returns {string}
+ */
+function trans(num) {
+  const digits = "零一二三四五六七八九";
+  const units = ["", "十", "百", "千", "万"];
+  let result = "";
+  let i = 0;
+  while (num > 0) {
+    const digit = num % 10;
+    if (digit !== 0 || result.length > 0) {
+      result = digits[digit] + units[i] + result;
+    }
+    num = Math.floor(num / 10);
+    i++;
+  }
+  return result;
+}
+console.log(trans(10000));
+```

@@ -578,3 +578,50 @@ diff 规则：
 - 而 react 则是从左往右依次对比，利用元素的 index 和标识 lastIndex 进行比较，如果满足 index < lastIndex 就移动元素，删除和添加则各自按照规则调整；
 - 当一个集合把最后一个节点移动到最前面，react 会把前面的节点依次向后移动，而 Vue 只会把最后一个节点放在最前面，这样的操作来看，Vue 的 diff 性能是高于 react 的
 
+## 8. 如何中断一个网络请求
+
+- XML(XMLHttpRequest)
+
+```js
+// token用于注销
+function getWithCancel(url, token) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", url);
+  return new Promise((resolve, reject) => {
+    console.log(12111);
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    token.cancel = function () {
+      xhr.abort(); // 中断请求
+      reject(new Error("Cancelled")); // reject 出去
+    };
+    // 监听到错误也reject出去
+    xhr.onerror = reject;
+  });
+}
+getWithCancel("www.baidu.com", {});
+```
+
+- fetch
+
+```js
+const controller = new AbortController();
+const sendFetchRequest = function (url, options) {
+  const signal = controller.signal;
+  fetch(url, { ...options, signal })
+    .then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      console.log(data);
+    })
+    .catch((e) => {
+      console.error("Download error" + e.message);
+    });
+};
+const abortFetchRequest = () => {
+  console.log("Fetch aborted");
+  controller.abort();
+};
+```
