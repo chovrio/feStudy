@@ -625,3 +625,5 @@ const abortFetchRequest = () => {
   controller.abort();
 };
 ```
+
+## 9. JavaScript 的内存管理

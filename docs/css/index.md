@@ -59,7 +59,7 @@ title: css
 
 块级格式化上下文（Block Formatting Context，BFC）是 Web 页面的可视化 CSS 渲染的一部分，是布局过程中生成块级盒子的区域，也是浮动元素与其它元素的交互限定区域。
 
-## display:none 与 visibility:hidden 的区别
+## 3. display:none 与 visibility:hidden 的区别
 
 区别如下：
 
@@ -83,3 +83,165 @@ title: css
 - display:none，不会被读取
 - visibility:hidden，会读取
 
+## 4. css 居中方案
+
+```html
+<div style="width: 300px; height: 300px; background-color: pink" class="parent">
+  <div
+    style="width: 100px; height: 100px; background-color: skyblue"
+    class="child"
+  >
+    demo
+  </div>
+</div>
+```
+
+### 水平居中
+
+#### 1.text-align + inline-block
+
+```css
+.parent {
+  /* text-align会对inline的子级生效，设置为center就会水平居中 */
+  text-align: center;
+}
+
+.child {
+  /* display设置为inline-block子级就不会撑满父级，而是自适应内容 */
+  display: inline-block;
+  /* text-align会继承，child的子级也会水平居中，如果我们想恢复默认，手动写为左对齐就行了 */
+  text-align: left;
+}
+```
+
+#### 2.table + margin
+
+```css
+.parent {
+}
+
+.child {
+  /* display设置为table，如果不指定宽度，宽度就是自适应内容 */
+  display: table;
+  /* display如果是table，margin auto就可以生效 */
+  /* 如果没有设置display为table，margin auto不能生效*/
+  margin: 0 auto;
+}
+/* 如果知道子元素宽度，可以直接应用margin auto */
+.child {
+  width: 100px;
+  margin: auto;
+}
+```
+
+#### 3.absolute + transform
+
+```css
+.parent {
+  /* 父级设置relative好让子级absolute相对于父级定位 */
+  position: relative;
+}
+
+.child {
+  position: absolute;
+  /* left 50%会让子级在正中稍微靠右一点 */
+  left: 50%;
+  /* translateX百分比相对的是自身，因为前面靠右了，往左挪一点 */
+  /* 挪的位置刚好是自身宽的一半*/
+  transform: translateX(-50%);
+}
+```
+
+#### 4.flex + justify-content
+
+```css
+.parent {
+  display: flex;
+  justify-content: center;
+}
+
+.child {
+}
+```
+
+#### 5.flex + margin
+
+```css
+.parent {
+  display: flex;
+}
+
+.child {
+  margin: 0 auto;
+}
+```
+
+### 垂直居中
+
+#### 1.table-cell + vertical-align
+
+```css
+.parent {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.child {
+}
+```
+
+#### 2.flex + align-items
+
+```css
+.parent {
+  display: flex;
+  align-items: center;
+}
+
+.child {
+}
+```
+
+### 水平垂直居中
+
+#### 1.text-align + inline-block + table-cell + vertical-align
+
+```css
+.parent {
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.child {
+  display: inline-block;
+}
+```
+
+#### 2.absolute + transform
+
+```css
+.parent {
+  position: relative;
+}
+
+.child {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+```
+
+#### 3.flex
+
+```css
+.parent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.child {
+}
+```
