@@ -1,37 +1,39 @@
-// token用于注销
-function getWithCancel(url, token) {
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", url);
-  return new Promise((resolve, reject) => {
-    console.log(12111);
-    xhr.onload = function () {
-      resolve(xhr.response);
-    };
-    token.cancel = function () {
-      xhr.abort(); // 中断请求
-      reject(new Error("Cancelled")); // reject 出去
-    };
-    // 监听到错误也reject出去
-    xhr.onerror = reject;
-  });
+class LRUCache {
+  constructor(length) {
+    if (length < 1) throw new Error("invalid length");
+    this.length = length;
+    this.data = new Map();
+  }
+  set(key, value) {
+    const data = this.data;
+    if (data.has(key)) {
+      data.delete(key);
+    }
+    data.set(key, value);
+    if (data.size > this.length) {
+      // 如果超出了容量，就删除最老的元素
+      const delKey = data.keys().next().value;
+      data.delete(delKey);
+    }
+  }
+  get(key) {
+    const data = this.data;
+    if (!data.has(key)) return null;
+    const value = data.get(key);
+    // 先删除，再添加，就是最新的了
+    data.delete(key);
+    data.set(key, value);
+    return value;
+  }
 }
-getWithCancel("www.baidu.com", {});
 
-const controller = new AbortController();
-const sendFetchRequest = function (url, options) {
-  const signal = controller.signal;
-  fetch(url, { ...options, signal })
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      console.log(data);
-    })
-    .catch((e) => {
-      console.error("Download error" + e.message);
-    });
-};
-const abortFetchRequest = () => {
-  console.log("Fetch aborted");
-  controller.abort();
-};
+const lruCache = new LRUCache(2);
+lruCache.set(1, 1); // {1=1}
+lruCache.set(2, 2); // {1=1, 2=2}
+console.info(lruCache.get(1)); // 1 {2=2, 1=1}
+lruCache.set(3, 3); // {1=1, 3=3}
+console.info(lruCache.get(2)); // null
+lruCache.set(4, 4); // {3=3, 4=4}
+console.info(lruCache.get(1)); // null
+console.info(lruCache.get(3)); // 3 {4=4, 3=3}
+console.info(lruCache.get(4)); // 4 {3=3, 4=4}
