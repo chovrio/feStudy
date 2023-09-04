@@ -732,3 +732,178 @@ function prototype(child, parent) {
   child.prototype = prototype;
 }
 ```
+
+## 10. 一道奇怪的 Promise 题目
+
+```js
+Promise.resolve()
+  .then(() => {
+    console.log(0);
+    return Promise.resolve(4);
+  })
+  .then((res) => {
+    console.log(res);
+    return Promise.resolve(8);
+  })
+  .then((res) => {
+    console.log(res);
+  });
+
+Promise.resolve()
+  .then(() => {
+    console.log(1);
+  })
+  .then(() => {
+    console.log(2);
+  })
+  .then(() => {
+    console.log(3);
+  })
+  .then(() => {
+    console.log(5);
+  })
+  .then(() => {
+    console.log(6);
+  })
+  .then(() => {
+    console.log(7);
+  })
+  .then(() => {
+    console.log(9);
+  })
+  .then(() => {
+    console.log(10);
+  });
+```
+
+执行结果 `1 2 3 4 5 6 7 8 9 10`
+
+```txt
+Js引擎为了让microtask尽快的输出，做了一些优化，连续的多个then(3个)如果没有reject或者resolve会交替执行then而不至于让一个堵太久完成用户无响应，不单单v8这样其他引擎也是这样，因为其实promuse内部状态已经结束了。这块在v8源码里有完整的体现
+```
+
+## 11. JavaScript 的垃圾回收策略
+
+- 标记清除算法
+  - 过程：
+    - 垃圾收集器在运行时会给内存中的所有变量都加上一个标记，假设内存中所有对象都是垃圾，全标记为 0
+    - 然后从各个根对象开始遍历，把不是垃圾的节点改成 1
+    - 清理所有标记为 0 的垃圾，销毁并回收它们所占用的内存空间
+    - 最后，把所有内存中对象标记修改为 0，等待下一轮垃圾回收
+  - 优点：
+    - 实现比较简单
+  - 缺点：
+    - 清除后，剩余的对象内存位置是不变的，会出现内存碎片，且剩余空间内存不是一整块，有内存分配问题
+    - 内存碎片化，空闲内存块是不连续的，容易出现很多空闲内存块，还可能会出现分配所需内存过大的对象时找不到合适的块
+    - 分配速度慢，因为即便是使用 `First-fit` 策略，其操作仍是一个 O(n) 的操作，最坏情况是每次都要遍历到最后，同时因为碎片化，大对象的分配效率会更慢
+  - 分配策略
+    - `First-fit`，找到大于等于 size 的块立即返回 #推荐的方法
+    - `Best-fit`，遍历整个空闲列表，返回大于等于 size 的最小分块
+    - `Worst-fit`，遍历整个空闲列表，找到最大的分块，然后切成两部分，一部分 size 大小，并将该部分返回
+- 引用计数算法
+  它的策略是跟踪记录每个变量值被使用的次数
+  - 过程：
+    - 当声明了一个变量并且将一个引用类型赋值给该变量的时候这个值的引用次数就为 1
+    - 如果同一个值又被赋给另一个变量，那么引用数加 1
+    - 如果该变量的值被其他的值覆盖了，则引用次数减 1
+    - 当这个值的引用次数变为 0 的时候，说明没有变量在使用，这个值没法被访问了，回收空间，垃圾回收器会在运行的时候清理掉引用次数为 0 的值占用的内存
+  - 优点：
+    - 引用计数算法的优点我们对比标记清除来看就会清晰很多
+    - 标记清除算法需要每隔一段时间进行一次，而引用计数则只需要在引用时计数就可以了
+  - 缺点：
+    - 需要一个计数器，而此计数器需要占很大的位置，因为我们也不知道被引用数量的上限，还有就是无法解决循环引用无法回收的问题，这也是最严重的
+
+```js
+// 例子
+let a = new Object() 	// 此对象的引用计数为 1（a引用）
+let b = a 		// 此对象的引用计数是 2（a,b引用）
+a = null  		// 此对象的引用计数为 1（b引用）
+b = null 	 	// 此对象的引用计数为 0（无引用）
+...			// GC 回收此对象
+```
+
+- V8 对 GC 的优化
+
+  - 分代垃圾回收 - 对于一些大、老、存活时间长的对象来说同新、小、存活时间短的对象一个频率的检查 - 新老生代
+    新生代的对象为存活时间较短的对象，简单来说就是新产生的对象，通常只支持 1 ～ 8M 的容量，而老生代的对象为存活事件较长或常驻内存的对象，简单来说就是经历过新生代垃圾回收后还存活下来的对象，容量通常比较大
+
+        - 新生代垃圾回收
+          新生代对象是通过一个名为 Scavenge 的算法进行垃圾回收，在 Scavenge 算法 的具体实现中，主要采用了一种复制式的方法即 Cheney 算法 ，我们细细道来
+          Cheney 算法 中将堆内存一分为二，一个是处于使用状态的空间我们暂且称之为 使用区，一个是处于闲置状态的空间我们称之为 空闲区，
+
+          - 过程：
+            - 新加入的对象都会存放到使用区，当使用区快被写满时，就需要执行一次垃圾清理操作
+            - 当开始进行垃圾回收时，新生代垃圾回收器会对使用区中的活动对象做标记，标记完成之后将使用区的活动对象复制进空闲区并进行排序，随后进入垃圾清理阶段，即将非活动对象占用的空间清理掉。最后进行角色互换，把原来的使用区变成空闲区，把原来的空闲区变成使用区
+            - 当一个对象经过多次复制后依然存活，它将会被认为是生命周期较长的对象，随后会被移动到老生代中，采用老生代的垃圾回收策略进行管理
+            - 还有一种情况，如果复制一个对象到空闲区时，空闲区空间占用超过了 25%，那么这个对象会被直接晋升到老生代空间中，设置为 25% 的比例的原因是，当完成 Scavenge 回收后，空闲区将翻转成使用区，继续进行对象内存的分配，若占比过大，将会影响后续内存分配
+
+        - 老生代垃圾回收就是传统的标记清除算法
+
+  - V8 的垃圾回收机制也是基于标记清除算法，不过对其做了一些优化。
+    - 针对新生区采用并行回收。
+    - 针对老生区采用增量标记与惰性回收。
+
+## 12. 实现一个 EventMitter 类
+
+`EventMitter` 就是发布订阅模式的电信引用
+
+```ts
+class EventEmitter {
+  private _events: Record<string, Array<Function>>;
+  constructor() {
+    this._events = Object.create(null);
+  }
+  emit(evt: string, ...args: any[]) {
+    if (!this._events[evt]) {
+      return false;
+    }
+    const fns = [...this._events[evt]];
+    fns.forEach((fn) => {
+      fn.apply(this, args);
+    });
+    return true;
+  }
+  on(evt: string, fn: Function) {
+    if (typeof fn !== "function") {
+      throw new TypeError("The evet-triggered callback must be a function.");
+    }
+    if (!this._events[evt]) {
+      this._events[evt] = [fn];
+    } else {
+      this._events[evt].push(fn);
+    }
+  }
+  once(evt: string, fn: Function) {
+    const execFn = () => {
+      fn.apply(this);
+      this.off(evt, execFn);
+    };
+  }
+  off(evt: string, fn?: Function) {
+    if (!this._events[evt]) {
+      return;
+    }
+    if (!fn) {
+      this._events[evt] && (this._events[evt].length = 0);
+    }
+    let cb;
+    let cbLen = this._events[evt].length;
+    let i = 0;
+    loop: while (cbLen--) {
+      cb = this._events[evt][i];
+      if (cb === fn) {
+        this._events[evt].splice(i, 1);
+        break loop;
+      }
+      i++;
+    }
+  }
+  removeAllListeners(evt?: string) {
+    if (evt) {
+      this._events[evt] && (this._events[evt].length = 0);
+    } else {
+      this._events = Object.create(null);
+    }
+  }
+}
+```
