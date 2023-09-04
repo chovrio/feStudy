@@ -11,7 +11,7 @@ generator 的底层实现
 // async + await 基于generator的  语法糖
 
 // 我们知道核心靠的就是switch case 来实现的
-const { wrap } = require("node:module");
+const { wrap } = require('node:module');
 let regeneratorRuntime = {
   mark(genFn) {
     return genFn;
@@ -37,7 +37,7 @@ let regeneratorRuntime = {
     return it;
   },
 };
-("use strict");
+('use strict');
 
 // 这是babel转义前的read函数
 // function* read() {
@@ -61,40 +61,40 @@ function read() {
 
       case 2:
         a = _context.sent;
-        console.log("a", a);
+        console.log('a', a);
         _context.next = 6;
         return 2;
 
       case 6:
         b = _context.sent;
-        console.log("b", b);
+        console.log('b', b);
         _context.next = 10;
         return 3;
 
       case 10:
         c = _context.sent;
-        console.log("c", c);
+        console.log('c', c);
 
       case 12:
-      case "end":
+      case 'end':
         return _context.stop();
     }
   }, _marked);
 }
 
 let it = read(); // 默认没有执行
-let { value, done } = it.next("abc"); // 第一次传递参数是没有意义的
+let { value, done } = it.next('abc'); // 第一次传递参数是没有意义的
 // 给next方法传递参数时 他的传参会给上一yield的返回值
 {
-  let { value, done } = it.next("abc");
+  let { value, done } = it.next('abc');
   console.log(value, done);
 }
 {
-  let { value, done } = it.next("ddd");
+  let { value, done } = it.next('ddd');
   console.log(value, done);
 }
 {
-  let { value, done } = it.next("eee");
+  let { value, done } = it.next('eee');
   console.log(value, done);
 }
 ```
@@ -106,7 +106,7 @@ let { value, done } = it.next("abc"); // 第一次传递参数是没有意义的
 `Symbol`是`ES6`中新增的一种数据类型，表示一个独一无二的值
 
 ```js
-const symbol = Symbol("chovrio"); // 参数只能是 string 和 number
+const symbol = Symbol('chovrio'); // 参数只能是 string 和 number
 console.log(symbol.description); // chovrio
 ```
 
@@ -121,14 +121,14 @@ console.log(symbol.description); // chovrio
 在对象中使用
 
 ```js
-const symbol = Symbol("chovrio");
-const name = Symbol("name");
-const age = Symbol("age");
+const symbol = Symbol('chovrio');
+const name = Symbol('name');
+const age = Symbol('age');
 const obj = {
   [name]: symbol.description,
   [age]: 19,
 };
-obj.name = "Autumn";
+obj.name = 'Autumn';
 console.log(obj); // { name: 'Autumn', [Symbol(name)]: 'chovrio', [Symbol(age)]: 19 }
 console.log(obj.name); // Autumn
 ```
@@ -139,8 +139,8 @@ console.log(obj.name); // Autumn
 2. 创建变量时候传入的字符串或者数字，只是一个标识没有任何意义，并且无法做更改
 
 ```js
-const symbol = Symbol("chovrio");
-symbol.description = "test";
+const symbol = Symbol('chovrio');
+symbol.description = 'test';
 console.log(symbol); // Symbol(chovrio)
 console.log(symbol.description); // chovrio
 ```
@@ -156,9 +156,9 @@ console.log(Number(symbol)); // 报错
 4. 不能做任何运算
 
 ```js
-const name = Symbol("chovrio");
+const name = Symbol('chovrio');
 console.log(name + 1); // 报错
-console.log(name + "1"); // 报错
+console.log(name + '1'); // 报错
 ```
 
 5. symbol 生成的值用作属性或方法名的时候一定要保存下来，否则后续无法使用
@@ -196,10 +196,10 @@ const sex = {
 function isMan(gender) {
   switch (gender) {
     case sex.man:
-      console.log("男性");
+      console.log('男性');
       break;
     case sex.woman:
-      console.log("女性");
+      console.log('女性');
       break;
   }
 }
@@ -228,8 +228,8 @@ isMan(sex.man); //男性
 因为 Symbol 类型的值都是独一无二的，但有时，我们希望重新使用同一个 Symbol 值，`Symbol.for`方法可以做到，它接收一个字符串作为参数，然后搜索有没有以该参数作为名称的 symbol 值，如果有，就返回这个 Symbol 值，否则就新建一个以该字符串为名称的 Symbol 值，并将其注册到全局
 
 ```js
-const name1 = Symbol.for("chovrio");
-const name2 = Symbol.for("chovrio");
+const name1 = Symbol.for('chovrio');
+const name2 = Symbol.for('chovrio');
 console.log(name1 === name2); // true
 ```
 
@@ -240,9 +240,9 @@ console.log(name1 === name2); // true
 `Symbol.keyFor`方法返回一个已经登记的 Symbol 类型值`key`
 
 ```js
-const name1 = Symbol.for("chovrio");
+const name1 = Symbol.for('chovrio');
 console.log(Symbol.keyFor(name1)); // chovrio
-const name2 = Symbol("Autumn");
+const name2 = Symbol('Autumn');
 console.log(Symbol.keyFor(name2)); // undefined
 ```
 
@@ -257,8 +257,8 @@ console.log(Symbol.keyFor(name2)); // undefined
 ==和===最大的区别就是前者不限定类型而后者限定类型，如下例，如果想要实现严格相等（===），两者的类型必须相同
 
 ```js
-1 == "1"; // true
-1 === "1"; // false
+1 == '1'; // true
+1 === '1'; // false
 0 == false; // true
 0 === false; // false
 ```
@@ -318,9 +318,9 @@ var test = (x) => ({ name: x });
 - 它会继承自己作用域的上一层的 this
 
 ```js
-var id = "GLOBAL";
+var id = 'GLOBAL';
 var obj = {
-  id: "obj",
+  id: 'obj',
   fn() {
     console.log(this.id);
   },
@@ -344,9 +344,9 @@ obj.__fn(); // obj
 3. 箭头函数继承来的 this 指向永远不会改变
 
 ```js
-var id = "GLOBAL";
+var id = 'GLOBAL';
 var obj = {
-  id: "OBJ",
+  id: 'OBJ',
   a: function () {
     console.log(this.id);
   },
@@ -363,14 +363,14 @@ new obj.b(); // Uncaught TypeError: obj.b is not a constructor
 4. call()、apply()、bind()等方法不能改变箭头函数中 this 的指向
 
 ```js
-var id = "Global";
+var id = 'Global';
 let fun1 = () => {
   console.log(this.id);
 };
 fun1(); // 'Global'
-fun1.call({ id: "Obj" }); // 'Global'
-fun1.apply({ id: "Obj" }); // 'Global'
-fun1.bind({ id: "Obj" })(); // 'Global'
+fun1.call({ id: 'Obj' }); // 'Global'
+fun1.apply({ id: 'Obj' }); // 'Global'
+fun1.bind({ id: 'Obj' })(); // 'Global'
 ```
 
 5. 箭头函数不能作为构造函数使用
@@ -403,7 +403,7 @@ function fn(a) {
   };
 }
 
-let newFn = fn("newFn");
+let newFn = fn('newFn');
 newFn(); // newFn 1
 newFn(); // newFn 2
 newFn(); // newFn 3
@@ -586,7 +586,7 @@ diff 规则：
 // token用于注销
 function getWithCancel(url, token) {
   const xhr = new XMLHttpRequest();
-  xhr.open("GET", url);
+  xhr.open('GET', url);
   return new Promise((resolve, reject) => {
     console.log(12111);
     xhr.onload = function () {
@@ -594,13 +594,13 @@ function getWithCancel(url, token) {
     };
     token.cancel = function () {
       xhr.abort(); // 中断请求
-      reject(new Error("Cancelled")); // reject 出去
+      reject(new Error('Cancelled')); // reject 出去
     };
     // 监听到错误也reject出去
     xhr.onerror = reject;
   });
 }
-getWithCancel("www.baidu.com", {});
+getWithCancel('www.baidu.com', {});
 ```
 
 - fetch
@@ -617,11 +617,11 @@ const sendFetchRequest = function (url, options) {
       console.log(data);
     })
     .catch((e) => {
-      console.error("Download error" + e.message);
+      console.error('Download error' + e.message);
     });
 };
 const abortFetchRequest = () => {
-  console.log("Fetch aborted");
+  console.log('Fetch aborted');
   controller.abort();
 };
 ```
@@ -636,7 +636,7 @@ const abortFetchRequest = () => {
 
 ```js
 function Parent() {
-  this.name = "chovrio";
+  this.name = 'chovrio';
 }
 Parent.prototype.getName = function () {
   console.log(this.name);
@@ -672,7 +672,7 @@ function Child(name) {
 ```js
 function Parent(name) {
   this.name = name;
-  this.colors = ["red", "blue", "green"];
+  this.colors = ['red', 'blue', 'green'];
 }
 Parent.prototype.getName = function () {
   console.log(this.name);
@@ -710,7 +710,7 @@ function createObj(o) {
 function createObj(o) {
   var clone = Object.create(o);
   clone.sayName = function () {
-    console.log("hi");
+    console.log('hi');
   };
   return clone;
 }
@@ -864,8 +864,8 @@ class EventEmitter {
     return true;
   }
   on(evt: string, fn: Function) {
-    if (typeof fn !== "function") {
-      throw new TypeError("The evet-triggered callback must be a function.");
+    if (typeof fn !== 'function') {
+      throw new TypeError('The evet-triggered callback must be a function.');
     }
     if (!this._events[evt]) {
       this._events[evt] = [fn];
