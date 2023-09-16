@@ -101,3 +101,22 @@ if (fileStat?.isFile()) return getRealPath(file, options.preserveSymlinks);
 ```
 
 因为我本身没有 `unix` 系统，改动完代码过后是在 `win` 系统下跑的测试都通过了，对 `unix` 系统的测试是在 `stackblitz.com` 下完成的，我在原 issue 的 `stackblitz` 仓库里面 link 了我改动后的 `vite` 代码，页面正常展示了。但是我没在 `unix` 系统下跑过测试，后续的结果就是跑 `ci` 的时候测试寄了，吓得我赶紧关了 `pr` 😢。不过截止(9.16 23:16)现在关于这个 issue 都没有人对它进行分类，最开始看到这个 issue 的时候，没注意到具体的内容还评论了 `文件路径错了.`，最开始我觉得它不能算 `bug`，因为这本身就是用户自身的不合理行为，不应该由框架买单，但是 `vite` 自身又对它做了处理(获取真实路径)，但是又因为 `unix` 路径大小写敏感的特性，导致自身做的处理在 `unix` 无效，所以这算什么问题了，会不会是`特性`？
+
+update(9.17 1:37):
+
+凌晨睡床上突然想起，测试寄掉的原因是因为，`vite` 有后缀补全，没后缀的时候肯定找不到资源，但是 `file` 路径会被覆盖成空串，所以改动一下代码就行了(有点白痴了 😥)
+
+```js
+// 改动前
+if (!isWindows && fileStat === void 0 && (file = findRealPath(file))) {
+  fileStat = tryStatSync(file);
+}
+// 改动后
+if (!isWindows && fileStat === void 0) {
+  const newPath = findRealPath(file);
+  if (newPath) file = newPath;
+  fileStat = tryStatSync(file);
+}
+```
+
+继续睡觉，测试应该没问题了。😴
