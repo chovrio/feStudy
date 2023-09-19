@@ -120,3 +120,7 @@ if (!isWindows && fileStat === void 0) {
 ```
 
 继续睡觉，测试应该没问题了。😴
+
+9.18 很早之前发现过类似的问题(是否会区分大小写)，vite 貌似更尊重系统特性。 [issue](https://github.com/vitejs/vite/issues/964)
+
+之前的 `issue` 不出意料的被关闭了。
