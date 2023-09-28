@@ -15,7 +15,7 @@ title: html 内容
 **异：**
 
 - src 用于替换当前元素，比如 img、script、iframe 等等，它指向的资源会下载并应用到文档中
-- href 用于建立当前元素或文档与外部资源之间的练习，比如 link、a 等，它指向的资源不会下载，只是创建一个链接或引用。
+- href 用于建立当前元素或文档与外部资源之间的联系，比如 link、a 等，它指向的资源不会下载，只是创建一个链接或引用。
 - 当浏览器遇到 src 时，会暂停其他资源的下载和处理，直接将该资源加载、编译、执行完毕；当浏览器遇到 href 时，会并行下载资源，并且不会停止对当前文档的处理
 
 ## 2. 页面导入样式时，使用 link 和@import 有什么区别？
@@ -55,7 +55,7 @@ SEO 优化主要是为了方便搜索引擎爬取我们页面，提高我们页�
 2. 浏览器进程接受用户输入的 URL，并判断是否是有效的 URL 格式，如果不是，会尝试进行搜索或者提示错误
 3. 浏览器进程将 URL 交给网络进程，网络进程进行 DNS 域名解析，找到对应的 IP 地址，简历 TCP 连接
 4. 网络进程接受服务器返回的 HTTP 请求，并等待服务器响应。如果请求的协议是 HTTPS，还需要进行 SSL 握手和证书验证。
-5. 网络进程接收服务器返回的 HTTP 响应，解析响应头和响应体。如果响应头中国有重定向，缓存等信息，还需要进行相应的处理。
+5. 网络进程接收服务器返回的 HTTP 响应，解析响应头和响应体。如果响应头中有重定向，缓存等信息，还需要进行相应的处理。
 6. 网络进程将响应体中的 HTML 文档传递给渲染进程，渲染进程开始进行页面渲染
 7. 渲染进程对 HTML 文档进行解析，构建 DOM 树和 CSSOM 树，并合并成渲染树。
 8. 渲染进程对渲染树进行布局，计算每个节点的位置和大小，并生成绘制指令
@@ -112,90 +112,6 @@ HTML 语义化的好处：
 - LINK ------ 请求服务器建立链接关系
 - UNLINK ------ 断开链接关系
 
-## 10.有哪些 meta viewport 它们分别有什么作用
-
-meta viewport 是一个 HTML 标签，用于控制移动端浏览器的视口大小和缩放行为 1。它可以解决移动端页面在不同设备上的适配问题 2。常用的 meta viewport 属性有以下几种 1：
-
-- width：控制视口的宽度，可以设置为特定像素数或者 device-width（设备宽度）
-- height：控制视口的高度，可以设置为特定像素数或者 device-height（设备高度）
-- initial-scale：控制页面初始缩放比例，取值范围为 0.0 到 10.0
-- maximum-scale：控制页面最大缩放比例，取值范围为 0.0 到 10.0
-- minimum-scale：控制页面最小缩放比例，取值范围为 0.0 到 10.0
-- user-scalable：控制用户是否可以手动缩放页面，取值为 yes 或 no
-
-```html
-<!DOCTYPE html>
-<!--H5标准声明，使用 HTML5 doctype，不区分大小写-->
-<head lang="”en”">
-  <!--标准的 lang 属性写法-->
-  <meta charset="’utf-8′" />
-  <!--声明文档使用的字符编码-->
-  <meta http-equiv="”X-UA-Compatible”" content="”IE" ="edge,chrome" ="1″" />
-  <!--优先使用 IE 最新版本和 Chrome-->
-  <meta name="”description”" content="”不超过150个字符”" />
-  <!--页面描述-->
-  <meta name="”keywords”" content="””" />
-  <!-- 页面关键词-->
-  <meta name="”author”" content="”name," email@gmail.com” />
-  <!--网页作者-->
-  <meta name="”robots”" content="”index,follow”" />
-  <!--搜索引擎抓取-->
-  <meta
-    name="”viewport”"
-    content="”initial-scale"
-    ="1,"
-    maximum-scale="3,"
-    minimum-scale="1,"
-    user-scalable="no”"
-  />
-  <!--为移动设备添加 viewport-->
-  <meta name="”apple-mobile-web-app-title”" content="”标题”" />
-  <!--iOS 设备 begin-->
-  <meta name="”apple-mobile-web-app-capable”" content="”yes”" />
-  <!--添加到主屏后的标题（iOS 6 新增）
-是否启用 WebApp 全屏模式，删除苹果默认的工具栏和菜单栏-->
-  <meta
-    name="”apple-itunes-app”"
-    content="”app-id"
-    ="myAppStoreID,"
-    affiliate-data="myAffiliateData,"
-    app-argument="myURL”"
-  />
-  <!--添加智能 App 广告条 Smart App Banner（iOS 6+ Safari）-->
-  <meta name="”apple-mobile-web-app-status-bar-style”" content="”black”" />
-  <meta name="”format-detection”" content="”telphone" ="no," email="no”" />
-  <!--设置苹果工具栏颜色-->
-  <meta name="”renderer”" content="”webkit”" />
-  <!-- 启用360浏览器的极速模式(webkit)-->
-  <meta http-equiv="”X-UA-Compatible”" content="”IE" ="edge”" />
-  <!--避免IE使用兼容模式-->
-  <meta http-equiv="”Cache-Control”" content="”no-siteapp”" />
-  <!--不让百度转码-->
-  <meta name="”HandheldFriendly”" content="”true”" />
-  <!--针对手持设备优化，主要是针对一些老的不识别viewport的浏览器，比如黑莓-->
-  <meta name="”MobileOptimized”" content="”320″" />
-  <!--微软的老式浏览器-->
-  <meta name="”screen-orientation”" content="”portrait”" />
-  <!--uc强制竖屏-->
-  <meta name="”x5-orientation”" content="”portrait”" />
-  <!--QQ强制竖屏-->
-  <meta name="”full-screen”" content="”yes”" />
-  <!--UC强制全屏-->
-  <meta name="”x5-fullscreen”" content="”true”" />
-  <!--QQ强制全屏-->
-  <meta name="”browsermode”" content="”application”" />
-  <!--UC应用模式-->
-  <meta name="”x5-page-mode”" content="”app”" />
-  <!-- QQ应用模式-->
-  <meta name="”msapplication-tap-highlight”" content="”no”" />
-  <!--windows phone 点击无高亮
-设置页面不缓存-->
-  <meta http-equiv="”pragma”" content="”no-cache”" />
-  <meta http-equiv="”cache-control”" content="”no-cache”" />
-  <meta http-equiv="”expires”" content="”0″" />
-</head>
-```
-
 ## 11.网页制作会用到的图片格式有哪些？
 
 - JPEG(或 JPG)：最为常见的图片格式，适合存储彩色照片或复杂的图像，支持不同程度的压缩，但会损失一些画质
@@ -231,6 +147,8 @@ canvas 指纹追踪技术的实现步骤大致如下：
 - Netflix
 
 意义：利用 canvas 指纹来识别和跟踪用户的行为，以提供更个性化的服务或广告
+
+[推荐阅读](https://blog.csdn.net/Lyrelion/article/details/125303106)
 
 ## 13.图片展示方面优化
 
@@ -311,10 +229,10 @@ div {
 其实有些浏览器是原生支持图片懒加载的，我们可以通过以下代码来进行判断
 
 ```js
-if ("loading" in HTMLImageElement.prototype) {
-  console.log("支持");
+if ('loading' in HTMLImageElement.prototype) {
+  console.log('支持');
 } else {
-  console.log("不支持，你可能需要引入懒加载库来实现懒加载");
+  console.log('不支持，你可能需要引入懒加载库来实现懒加载');
 }
 ```
 

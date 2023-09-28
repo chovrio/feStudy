@@ -14,7 +14,7 @@ title: react 相关
 
 - jsx 可以声明式的描述视图，提升开发效率，通过 babel 可以转换成 `jsx()` 的语法糖，也是 js 语法的扩展。
 
-jsx 是 ClassComponent 的 render 函数或者 FunctionComponent 的返回值，可以用来表示组件的内容，在经过 babel 编译之后，最后会被编译成 `React.createElement(18以前)`、`jsx`，所以 18 以前我们使用 jsx 文件必须要需要引入`react`
+jsx 是 ClassComponent 的 render 函数或者 FunctionComponent 的返回值，可以用来表示组件的内容，在经过 babel 编译之后，最后会被编译成 `React.createElement(17以前)`、`jsx`，所以 17 以前我们使用 jsx 文件必须要需要引入`react`
 
 ## createElement 函数
 
