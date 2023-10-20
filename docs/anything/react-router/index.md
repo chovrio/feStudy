@@ -6,6 +6,8 @@ title: react-router 部分原理
 
 最近在做 [monitor](https://github.com/chovrio/monitor.git) 的 `lib` 包的路由监听的时候，出现了点问题，又发现了点有意思的内容，比如 react-router 的路由底层似乎都是改写的 history Api。而不是 HashRouter 改写的 hashChange，BrowserRouter 改写 history 事件。再比如为什么我们在 `react-router` 重写 `history Api` 前，重写了原生 Api 会导致 react 应用崩溃，而我们在 react-router 改写后，再改写添加我们需要的应用逻辑就没有问题。
 
+我想象中的`react-router`的哈希路由就是监听 hashchange 的变化，Browser 路由会改写原生的两个事件，但事实上都是使用的 history 对象。也只监听了 `popstate` 方法。
+
 [源码位置](https://github.com/chovrio/anything/tree/main/packages/react-router)
 
 小 tip：看官方文档的时候发现 react-router 更新很大，推荐我们使用 createXXX Api 来创建路由，而不是之前的 Router 组件，找到篇文章，感兴趣的可以自行阅读
@@ -69,7 +71,7 @@ window['trackerHistory']();
 </HashRouter>
 ```
 
-无论是 `BrowserRouter` 或者 `HashRouter` 组件它们最后返回的都是 `Router` 组件，我们这里先看 `BrowserRouter` 的源码
+无论是 `BrowserRouter` 或者 `HashRouter` 组件它们最后返回的都是 `Router` 组件只是创建的 history 对象有一点区别，我们这里先看 `BrowserRouter` 的源码
 
 ```tsx
 export function BrowserRouter({
@@ -303,3 +305,11 @@ export function Route(_props: RouteProps): React.ReactElement | null {
 `invariant` 是一个抛出错误的函数，在 react-router 内部中一般不会执行 `Route` 这个组件，或者说在`Routes` 组件内都不会执行 `Route` 组件，在判断到组件的 `type` 是 `Route` 的时候会通过传入的 props 创建 `RouteObject` 对象，不是 `Route` 的话就会直接报错。如果我们尝试在 `Routes` 组件外尝试使用 `Route` 组件的话，react 会把它当成一个正常的组件进行解析，然后就会执行内部的 `invariant` 函数就又会报错。但其实不存在 `invariant` 的话我们依旧可以把 `Route` 当作一个普通组件来使用，因为函数组件没有返回值就相当于返回了 `undefined`，react18 之后支持返回 undefined 了(可以理解为一个 Fragment 组件吧只是没内容)。
 
 为什么在 `Routes` 内部就不会执行 `Route` 这个函数组件呢？这个问题其实很简单我们看看之前的 `Routes` 组件就明了了，`Routes` 组件并没有直接返回它的 children，而是通过 `useRoutes` 函数在路由对象里面匹配到对应的路由后渲染对应对象的 element。而路由对象又是通过 `createRoutesFromChildren` 创建的，在内部`react-router`并不需要 Route 组件生成 fiber，它只需要 Route 组件上的 props，然后将它们转换成一个 RouteObject 对象，然后交给上层和当前路由进行匹配，选择要渲染的 element。
+
+## 解决问题
+
+没有问题，只是把 `apply` 写成 `aplly` 了，难崩。找了半天源码是在没发现`history.replaceState`方法哪里出错了，然后发现`origin.aplly`是 undefined，还以为是 router 底层把 Function.prototype.apply 方法改写了，然后用`Reflect`映射后解决问题，但是又没找到改写的逻辑，最后发现单词拼错了......
+
+## 小结
+
+虽然很乌龙，但是还是通过看源码知道了`react-router`的一定实现逻辑，至少和我想象中的很不一样。后续有时间打算写一个 mini-router，实现一个简单的路由库，加深对路由的理解。
