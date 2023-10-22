@@ -107,7 +107,7 @@ class Promise {
     });
   }
   #runHandlers() {
-    if (this.#state !== PENDING) {
+    if (this.#state === PENDING) {
       return;
     }
     while (this.#handlers[0]) {
